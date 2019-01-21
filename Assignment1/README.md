@@ -88,7 +88,7 @@ git commit -m "your message"
 For example
 ```
 git add "Assignment 1.ipynb" "A1.py"
-git commit -am "Finished assignment 1"
+git commit -m "Finished assignment 1"
 ```
 
 3. Push your changes. This actually pushes your branch to github.com

@@ -5,4 +5,4 @@ This is your second assignment! Much like your first assignment, please go throu
 Before starting, make sure you have everything in the installed - PyTorch, Numpy and Matplotlib. (ESPECIALLY PyTorch - you won't need the GPU version for this assignment! https://pytorch.org/get-started/locally/).
 
 ## Submission
-To submit this assignment, as per assignment 1, please export `assignment2.ipynb` into `assignment2.py`. Afterwards, please make a pull request to the master branch of the original repository. Comments will be left in the `assignment2.py` file. PLEASE DO NOT MERGE THE PULL REQUEST!
+To submit this assignment, as per assignment 1, please download `assignment2.ipynb` as `assignment2.py` (instructions are in the last cell of `assignment2.ipynb`. Afterwards, please make a pull request to the master branch of the original repository. Comments will be left in the `assignment2.py` file. PLEASE DO NOT MERGE THE PULL REQUEST!

@@ -1,22 +1,4 @@
 
-
-import numpy as np
-import matplotlib.pyplot as plt
-get_ipython().run_line_magic('matplotlib', 'inline')
-
-from scipy import io
-from sklearn.datasets import fetch_mldata
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.metrics import accuracy_score
-from sklearn.linear_model import LinearRegression, Ridge, LogisticRegression
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
-from sklearn.svm import LinearSVC, SVC
-from sklearn.decomposition import PCA
-from sklearn.neural_network import MLPClassifier
-#!/usr/bin/env python
-
-
 # coding: utf-8
 
 # # Assignment 1
@@ -37,6 +19,22 @@ from sklearn.neural_network import MLPClassifier
 
 # In[1]:
 
+
+import numpy as np
+import matplotlib.pyplot as plt
+get_ipython().run_line_magic('matplotlib', 'inline')
+
+from scipy import io
+from sklearn.datasets import fetch_mldata
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.metrics import accuracy_score
+from sklearn.linear_model import LinearRegression, Ridge, LogisticRegression
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.svm import LinearSVC, SVC
+from sklearn.decomposition import PCA
+from sklearn.neural_network import MLPClassifier
+#!/usr/bin/env python
 
 
 

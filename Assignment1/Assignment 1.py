@@ -1,7 +1,11 @@
 
 # coding: utf-8
 
-# # Assignment 1
+# In[ ]:
+
+
+# Assignment 1
+
 
 # This assignment provides a brief introduction to the machine learning process that we will cover in depth in this course. We want to show a simple workflow of how you can use the sklearn library for machine learning. We will be using the MNIST handwritten digits dataset to dive into the machine learning process.
 
@@ -17,7 +21,7 @@
 # 
 # These libraries (and many more) are often used together and built on top of each other. For example, sklearn depends on numpy and uses numpy arrays under the hood.
 
-# In[1]:
+# In[2]:
 
 
 import numpy as np
@@ -34,13 +38,11 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.svm import LinearSVC, SVC
 from sklearn.decomposition import PCA
 from sklearn.neural_network import MLPClassifier
-#!/usr/bin/env python
-
 
 
 # For this homework assignment, we will be using the MNIST dataset. The MNIST data is a collection of black and white 28x28 images, each picturing a handwritten digit. These were collected from digits people write at the post office, and now this dataset is a standard benchmark to evaluate models against used in the machine learning community. We have provided the .mat file in the assignment repository.
 
-# In[2]:
+# In[3]:
 
 
 mnist = io.loadmat('mnist-original.mat', struct_as_record=True) #struct_as_record MATLAB structs as numpy record arrays
@@ -52,7 +54,7 @@ y = mnist['label'].astype('int64').T
 
 # Let us first explore this data a little bit.
 
-# In[3]:
+# In[4]:
 
 
 print(X.shape, y.shape) 
@@ -62,7 +64,7 @@ print(X.shape, y.shape)
 
 # Let's try and visualize this data a bit. Change around the index variable to explore more.
 
-# In[4]:
+# In[5]:
 
 
 index = 28999 #15000, 28999, 67345
@@ -74,7 +76,7 @@ plt.imshow(image, cmap='gray')
 
 # Notice that each pixel value ranges from 0-255. When we train our models, a good practice is to *standardize* the data so different features can be compared more equally (it also speeds up computation). Here we will use a simple standardization, squeezing all values into the [0, 1] interval range. This kind of standardization is called min-max normalization. For other methods, see https://en.wikipedia.org/wiki/Feature_scaling
 
-# In[5]:
+# In[6]:
 
 
 X = X / 255 # Shorthand for dividing all values in the X matrix by 255. Numpy provides lots of shortcuts like this.
@@ -84,13 +86,13 @@ X = X / 255 # Shorthand for dividing all values in the X matrix by 255. Numpy pr
 
 # So, we want to have 2 datasets, train and test, each used for the named purpose exclusively.
 
-# In[6]:
+# In[7]:
 
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)
 
 
-# In[7]:
+# In[8]:
 
 
 print(X_train.shape, X_test.shape)
@@ -102,7 +104,7 @@ print(X_train.shape, X_test.shape)
 
 # Each of our labels is a number from 0-9. That is, our labels are categorical. If we simply did regression on this data, the labels would imply some sort of ordering and distance between the classes (imagine we were classing colors instead, there is no notion of distance or order i.e. 8 is not "more" of a digit than 7). We can fix this issue by one-hot encoding our labels. So, instead of each label being a simple digit, each label is a vector of 10 entries. 9 of those entries are zero, and only 1 entry is equal to one, corresponding to the index of the digit. This way, the distance between the labels are the same.
 
-# In[8]:
+# In[9]:
 
 
 enc = OneHotEncoder(sparse=False)
@@ -114,7 +116,7 @@ print(y_hot.shape)
 
 # Remember how the first sample is the digit zero? Let's now look at the new label at that index.
 
-# In[9]:
+# In[10]:
 
 
 y_hot[0]
@@ -134,7 +136,7 @@ y_hot[0]
 
 # First, let's do a basic linear regression.
 
-# In[10]:
+# In[11]:
 
 
 # Instantiate the model
@@ -143,7 +145,7 @@ linear = LinearRegression()
 linear.fit(X_train, y_train_hot)
 
 
-# In[11]:
+# In[12]:
 
 
 # use trained model to predict both train and test sets
@@ -163,7 +165,7 @@ print('test acc: ', accuracy_score(y_test_pred.argmax(axis=1), y_test))
 # 
 # Let us try Ridge Regression and see if we get better results
 
-# In[12]:
+# In[14]:
 
 
 
@@ -200,21 +202,22 @@ print('test acc: ', accuracy_score(logreg.predict(X_test), y_test))
 
 # Now you have seen many examples for how to construct, fit, and evaluate a model. Now do the same for Random Forest using the [documentation here](http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html). You should be able to create one easily without needing to specify any constructor parameters.
 
-# In[14]:
+# In[57]:
 
 
 
-random_forest = RandomForestClassifier(n_estimators=45, min_samples_split=5, max_features="log2")
+random_forest = RandomForestClassifier(n_estimators=100, min_samples_split=2, max_features='auto')
 ## YOUR CODE HERE - call the constructor
 
 ## YOUR CODE HERE - fit the rf model (just like logistic regression)
-random_forest.fit(X_test, y_test)
+random_forest.fit(X_train, y_train)
+
 ## YOUR CODE HERE - print training & test accuracy
 print('train acc: ', accuracy_score(random_forest.predict(X_train), y_train))
 print('test acc: ', accuracy_score(random_forest.predict(X_test), y_test))
 
 
-# That train accuracy is amazing, let's see if we can boost up the test accuracy a bit (since that's what really counts). Try and play around with the hyperparameters to see if you can edge out more accuracy (look at the documentation for parameters in the constructor). Focus on `n_estimators`, `min_samples_split`, `max_features`. You should be able to hit ~97%.
+# ##### That train accuracy is amazing, let's see if we can boost up the test accuracy a bit (since that's what really counts). Try and play around with the hyperparameters to see if you can edge out more accuracy (look at the documentation for parameters in the constructor). Focus on `n_estimators`, `min_samples_split`, `max_features`. You should be able to hit ~97%.
 
 # ### SVC
 
@@ -244,7 +247,7 @@ X_train_pca.shape
 
 # Now let's train our first SVC. The LinearSVC can only find a linear decision boundary (the hyperplane).
 
-# In[17]:
+# In[65]:
 
 
 lsvc = LinearSVC(dual=False, tol=0.01)
@@ -277,10 +280,10 @@ print('test acc: ', accuracy_score(psvc.predict(X_test_pca), y_test))
 
 # The RBF kernel uses the gaussian function to create an infinite dimensional space - a gaussian peak at each datapoint. Now fiddle with the `C` and `gamma` parameters of the gaussian kernel below to see what you can get. [Here's documentation](http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html)
 
-# In[25]:
+# In[64]:
 
 
-rsvc = SVC(kernel='rbf', tol=0.01, cache_size=4000, C=6)
+rsvc = SVC(kernel='rbf', tol=0.01, cache_size=4000, C=3.5, gamma='scale')
 ## YOUR CODE HERE - fit the rsvc model
 rsvc.fit(X_train_pca, y_train)
 ## YOUR CODE HERE - print training accuracy
@@ -299,10 +302,10 @@ print('test acc: ', accuracy_score(rsvc.predict(X_test_pca), y_test))
 
 # ### Question 4) Neural Network
 
-# In[23]:
+# In[58]:
 
 
-nn = MLPClassifier(hidden_layer_sizes=(60,), solver='adam', verbose=1)
+nn = MLPClassifier(hidden_layer_sizes=(150,150), solver='adam', verbose=1)
 ## YOUR CODE HERE - fit the nn
 nn.fit(X_train, y_train)
 ## YOUR CODE HERE - print training accuracy
@@ -320,9 +323,3 @@ print('test acc: ', accuracy_score(nn.predict(X_test), y_test))
 # 1. Convert this notebook to a regular python file (file -> download as -> python)
 # 
 # 2. Submit both the notebook and python file via a pull request as specified in the README
-
-# In[ ]:
-
-
-
-

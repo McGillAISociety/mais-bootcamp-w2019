@@ -17,7 +17,7 @@
 # 
 # These libraries (and many more) are often used together and built on top of each other. For example, sklearn depends on numpy and uses numpy arrays under the hood.
 
-# In[1]:
+# In[ ]:
 
 
 import numpy as np
@@ -38,7 +38,7 @@ from sklearn.neural_network import MLPClassifier
 
 # For this homework assignment, we will be using the MNIST dataset. The MNIST data is a collection of black and white 28x28 images, each picturing a handwritten digit. These were collected from digits people write at the post office, and now this dataset is a standard benchmark to evaluate models against used in the machine learning community. We have provided the .mat file in the assignment repository.
 
-# In[2]:
+# In[ ]:
 
 
 mnist = io.loadmat('mnist-original.mat', struct_as_record=True)
@@ -199,7 +199,7 @@ print('test acc: ', accuracy_score(logreg.predict(X_test), y_test))
 
 # Now you have seen many examples for how to construct, fit, and evaluate a model. Now do the same for Random Forest using the [documentation here](http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html). You should be able to create one easily without needing to specify any constructor parameters.
 
-# In[34]:
+# In[14]:
 
 
 ## YOUR CODE HERE - call the constructor
@@ -220,7 +220,7 @@ print('test acc: ', accuracy_score(y_test, rf.predict(X_test)))
 
 # The SVC will toast our laptops unless we reduce the data dimensionality. Let's keep 80% of the variation, and get rid of the rest. (This will cause a slight drop in performance, but not by much).
 
-# In[35]:
+# In[15]:
 
 
 pca = PCA(n_components=0.8, whiten=True)
@@ -231,7 +231,7 @@ X_test_pca = pca.transform(X_test)
 
 # Great! Now let's take a look at what that actually did.
 
-# In[36]:
+# In[16]:
 
 
 X_train_pca.shape
@@ -243,7 +243,7 @@ X_train_pca.shape
 
 # Now let's train our first SVC. The LinearSVC can only find a linear decision boundary (the hyperplane).
 
-# In[37]:
+# In[17]:
 
 
 lsvc = LinearSVC(dual=False, tol=0.01)
@@ -258,16 +258,16 @@ print('test acc: ', accuracy_score(lsvc.predict(X_test_pca), y_test))
 
 # ### Question 2) Poly SVC
 
-# In[ ]:
+# In[20]:
 
 
-psvc = SVC(kernel='poly', degree=2, tol=0.01, cache_size=7000)
+psvc = SVC(kernel='poly', degree=4, tol=0.01, cache_size=1000, max_iter=10000)
 ## YOUR CODE HERE - fit the psvc model
-psvc.fit(X_train, y_train) #How to know when we use hot encoder? How to know if fit_transform?
+psvc.fit(X_train_pca, y_train) #How to know when we use hot encoder? How to know if fit_transform?
 ## YOUR CODE HERE - print training accuracy
-print('train acc: ',accuracy_score(y_train, psvc.predict(X_train)))
+print('train acc: ',accuracy_score(y_train, psvc.predict(X_train_pca)))
 ## YOUR CODE HERE - print test accuracy
-print('test acc: ', accuracy_score(y_test, psvc.predict(X_test)))
+print('test acc: ', accuracy_score(y_test, psvc.predict(X_test_pca)))
 
 
 # Play around with the degree of the polynomial kernel to see what accuracy you can get.
@@ -281,11 +281,11 @@ print('test acc: ', accuracy_score(y_test, psvc.predict(X_test)))
 
 rsvc = SVC(kernel='rbf', tol=0.01, cache_size=4000, C=1.3, gamma='scale') #add C and gamma +(97 up)
 ## YOUR CODE HERE - fit the rsvc model
-rsvc.fit(X_train, y_train)
+rsvc.fit(X_train_pca, y_train)
 ## YOUR CODE HERE - print training accuracy
-print('train acc: ', accuracy_score(y_train, rsvc.predict(X_train)))
+print('train acc: ', accuracy_score(y_train, rsvc.predict(X_train_pca)))
 ## YOUR CODE HERE - print test accuracy
-print('test acc: ',  accuracy_score(y_test, rsvc.predict(X_test)))
+print('test acc: ',  accuracy_score(y_test, rsvc.predict(X_test_pca)))
 
 
 # Isn't that just amazing accuracy?
@@ -298,7 +298,7 @@ print('test acc: ',  accuracy_score(y_test, rsvc.predict(X_test)))
 
 # ### Question 4) Neural Network
 
-# In[41]:
+# In[ ]:
 
 
 nn = MLPClassifier(hidden_layer_sizes=(200,), solver='adam', verbose=1)

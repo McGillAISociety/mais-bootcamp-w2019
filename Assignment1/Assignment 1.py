@@ -275,7 +275,7 @@ print('test acc: ', accuracy_score(psvc.predict(X_test_pca), y_test))
 # In[ ]:
 
 
-rsvc = SVC(C=10,kernel='rbf',gamma = 10, tol=0.01, cache_size=4000)
+rsvc = SVC(C=2.0,kernel='rbf',gamma = "scale", tol=0.01, cache_size=4000)
 ## YOUR CODE HERE - fit the rsvc model
 rsvc.fit(X_train_pca, y_train)
 ## YOUR CODE HERE - print training accuracy
@@ -297,7 +297,7 @@ print('test acc: ', accuracy_score(rsvc.predict(X_test_pca), y_test))
 # In[ ]:
 
 
-nn = MLPClassifier(hidden_layer_sizes=(50,), solver='adam', verbose=1)
+nn = MLPClassifier(hidden_layer_sizes=(50,50), solver='adam', verbose=1)
 ## YOUR CODE HERE - fit the nn
 nn.fit(X_train, y_train)
 ## YOUR CODE HERE - print training accuracy

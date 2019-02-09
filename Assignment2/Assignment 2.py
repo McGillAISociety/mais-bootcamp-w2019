@@ -138,7 +138,7 @@ plt.show()
 # 
 # Now it is your turn! Following the same format as above, implement a 10-degree polynomial regression model on the training data and plot your results. Use your model to predict the output of the validation set and calculate the mean square error. Report and plot the results. 
 
-# In[8]:
+# In[15]:
 
 
 ### YOUR CODE HERE - Fit a 10-degree polynomial using Sci-Kit Learn
@@ -153,13 +153,18 @@ y_poly_pred = model.predict(x_poly)
 plt.scatter(train_x, train_y, s=10)
 plt.plot(train_x, y_poly_pred, color='r')
 plt.show()
+mse_train = mean_squared_error(train_y, y_poly_pred)
+print("Mean Squared Error (Training): {}".format(mse_train))
 
 ### YOUR CODE HERE - Use model to predict output of validation set
 valid_y_poly_pred = model.predict(polynomial_features.fit_transform(valid_x))
 
 ### YOUR CODE HERE - Calculate the RMSE. Report and plot the curve on the validation set.
+plt.scatter(valid_x, valid_y, s=10)
+plt.plot(valid_x, valid_y_poly_pred, color='r')
+plt.show()
 mse = mean_squared_error(valid_y, valid_y_poly_pred)
-print("Mean Squared Error: {}".format(mse))
+print("Mean Squared Error (Valid): {}".format(mse))
 
 
 # #### Did the root mean squared error go up or down as compared to the 2-degree polynomial curve? Why do you think this is the case?
@@ -168,7 +173,7 @@ print("Mean Squared Error: {}".format(mse))
 
 # Now repeat the above for a 20-degree polynomial regression model.
 
-# In[9]:
+# In[18]:
 
 
 ### YOUR CODE HERE - Fit a 20-degree polynomial using Sci-Kit Learn
@@ -180,6 +185,7 @@ model.fit(x_poly, train_y)
 y_poly_pred = model.predict(x_poly)
 
 ### YOUR CODE HERE - Plot your the curve on the training data set
+plt.figure()
 plt.scatter(train_x, train_y, s=10)
 plt.plot(train_x, y_poly_pred, color='r')
 plt.show()
@@ -188,6 +194,10 @@ plt.show()
 valid_y_poly_pred = model.predict(polynomial_features.fit_transform(valid_x))
 
 ### YOUR CODE HERE - Calculate the RMSE. Report and plot the curve on the validation set.
+plt.figure()
+plt.scatter(valid_x, valid_y, s=10)
+plt.plot(valid_x, valid_y_poly_pred, color='r')
+plt.show()
 mse = mean_squared_error(valid_y, valid_y_poly_pred)
 print("Mean Squared Error: {}".format(mse))
 
@@ -218,7 +228,7 @@ print("Mean Squared Error: {}".format(mse))
 # 
 # *Suggestion - Use the original pandas dataframes variables named train, valid, and test instead of the reshaped arrays that were used specifically for Sci-Kit Learn. It will make your computations cleaner and more inuitive.*
 
-# In[10]:
+# In[25]:
 
 
 ### YOUR CODE HERE - Create the polynomial matrix ϕ(X)
@@ -259,6 +269,7 @@ plt.show()
 print("Mean Squared Error (Training): {}".format(mean_squared_error(pred_train, y_matrix)))
 
 ### YOUR CODE HERE - Make predictions on the validation set and calculate the mean squared error. Plot the results.
+
 x_matrix_valid = create_matrix(valid[0], 10)
 pred_valid = np.matmul(W, np.transpose(x_matrix_valid))
 y_matrix_valid = np.array(valid[1])
@@ -272,7 +283,7 @@ print("Mean Squared Error (Valid): {}".format(mean_squared_error(pred_valid, y_m
 
 # For the rest of the assignment, we will use the other dataset named **dataset2.csv**. First load the csv and split the model into train, valid, and test sets as shown earlier in the assignment.
 
-# In[15]:
+# In[26]:
 
 
 ### YOUR CODE HERE - Load dataset2.csv and split into 3 equal sets
@@ -288,7 +299,7 @@ test2.sort_values(by=[0], inplace=True)
 
 # Plot the data below to see what it looks like
 
-# In[13]:
+# In[27]:
 
 
 ### YOUR CODE HERE - Plot the points for dataset2
@@ -319,7 +330,7 @@ plt.show()
 # 
 # Now once you understand, it is time to implement the gradient descent below. You may set the learning rate to 1e-6 or whatever value you think is best. As usual, calculate the mean squared error and plot your results. This time, training should be done using the training and validation sets, while the final mean squared error should be computed using the testing set.
 
-# In[ ]:
+# In[46]:
 
 
 # Single Variable Approach
@@ -327,7 +338,7 @@ plt.show()
 # y= (theta_1)x + theta_0
 import random
 
-def gradient_descent_algorithm(data, convex = False, rot = 10 ** -3, epsilon = 10**-6):
+def gradient_descent_algorithm(data, convex = False, rot = 10 ** -2, epsilon = 10**-6):
     y = np.array(data[1])
     x = np.array(data[0])
     
@@ -348,20 +359,18 @@ def gradient_descent_algorithm(data, convex = False, rot = 10 ** -3, epsilon = 1
         b_temp = b - rot * derivative_b(x,y, b, m)
         m_temp = m - rot * derivative_m(x,y, b, m)
 
-        predicted = np.zeros((len(x)))
-        for index, value in enumerate(x):
-            predicted[index] = m * value + b
+        predicted = get_prediction(x, m_temp, b_temp)
         temp_error = mean_squared_error(predicted, y)
         iterations += 1
         if convex == True:
             if (temp_error < error):
                 error = temp_error
             else:
-                return predicted  
+                return (b, m)  
         else:
             error = temp_error 
             if (abs((b_temp - b) < epsilon)) & (abs((m_temp - m)) < epsilon):
-                return predicted
+                return (b, m)
 
 def derivative_b(x, y, b, m):
     sum_value = 0
@@ -375,23 +384,31 @@ def derivative_m(x, y, b,m):
         sum_value += (b + m * x[index] - y[index]) * x[index]
     return (2/len(x)) * sum_value
 
-predicted_y_train = gradient_descent_algorithm(train2, epsilon = 10**-5)
+def get_prediction(x, m, b):
+    predicted = np.zeros((len(x)))
+    for index, value in enumerate(x):
+        predicted[index] = m * value + b
+    return predicted
+
+b,m = gradient_descent_algorithm(train2, epsilon= 10**-5)
+
+predicted_y_train = get_prediction(np.array(train2[0]), m, b)
 plt.figure()
 plt.plot(train2[0], predicted_y_train, c='r')
 plt.scatter(train2[0], train2[1], s=10)
 plt.show()
 print("Mean Squared Error (Training): {}".format(mean_squared_error(predicted_y_train, train2[1])))
 
-predicted_y_valid = gradient_descent_algorithm(valid2, epsilon = 10**-5)
+predicted_y_valid = get_prediction(np.array(valid2[0]), m, b)
 plt.figure()
 plt.plot(valid2[0], predicted_y_valid, c='r')
 plt.scatter(valid2[0], valid2[1], s=10)
 plt.show()
 print("Mean Squared Error (Valid): {}".format(mean_squared_error(predicted_y_valid, valid2[1])))
-          
+
 
 # YOUR CODE HERE - Calculate the the mean squared error and plot the results.
-predicted_y_test = gradient_descent_algorithm(test2, epsilon = 10**-5)
+predicted_y_test = get_prediction(np.array(test2[0]), m, b)
 plt.figure()
 plt.plot(test2[0], predicted_y_test, c='r')
 plt.scatter(test2[0], test2[1], s=10)
@@ -400,7 +417,7 @@ print("Mean Squared Error (Test): {}".format(mean_squared_error(predicted_y_test
   
 
 
-# In[28]:
+# In[41]:
 
 
 #Vector Approach
@@ -427,27 +444,23 @@ def gradient_descent_algorithm_vector(data, rot = 10 ** -6, epsilon = 10**-5):
             return W
         W = temp_W
         
-W_train = gradient_descent_algorithm_vector(train2, epsilon = 10**-5)
-pred_train_v = np.matmul(W_train, np.transpose(create_matrix(train2[0])))
+W = gradient_descent_algorithm_vector(train2, epsilon = 10**-5)
 
+pred_train_v = np.matmul(W, np.transpose(create_matrix(train2[0])))
 plt.figure()
 plt.plot(train2[0], pred_train_v, c='r')
 plt.scatter(train2[0], train2[1], s=10)
 plt.show()
 print("Mean Squared Error (Training): {}".format(mean_squared_error(pred_train_v, train2[1])))
 
-W_valid = gradient_descent_algorithm_vector(valid2, epsilon = 10**-5)
-pred_valid_v = np.matmul(W_valid, np.transpose(create_matrix(valid2[0])))
-
+pred_valid_v = np.matmul(W, np.transpose(create_matrix(valid2[0])))
 plt.figure()
 plt.plot(valid2[0], pred_valid_v, c='r')
 plt.scatter(valid2[0], valid2[1], s=10)
 plt.show()
 print("Mean Squared Error (Training): {}".format(mean_squared_error(pred_valid_v, valid2[1])))
 
-W_test = gradient_descent_algorithm_vector(test2, epsilon = 10**-5)
-pred_test_v = np.matmul(W_test, np.transpose(create_matrix(test2[0])))
-
+pred_test_v = np.matmul(W, np.transpose(create_matrix(test2[0])))
 plt.figure()
 plt.plot(test2[0], pred_test_v, c='r')
 plt.scatter(test2[0], test2[1], s=10)

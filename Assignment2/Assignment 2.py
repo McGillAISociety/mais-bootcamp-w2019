@@ -242,7 +242,7 @@ plt.show()
 
 # For the rest of the assignment, we will use the other dataset named **dataset2.csv**. First load the csv and split the model into train, valid, and test sets as shown earlier in the assignment.
 
-# In[164]:
+# In[179]:
 
 
 ### YOUR CODE HERE - Load dataset2.csv and split into 3 equal sets
@@ -262,11 +262,13 @@ train_x = train_x.reshape(-1, 1)
 train_y = train_y.reshape(-1, 1)
 valid_x = valid_x.reshape(-1, 1)
 valid_y = valid_y.reshape(-1, 1)
+test_x = np.array(train[0])
+test_y = np.array(train[1])
 
 
 # Plot the data below to see what it looks like
 
-# In[165]:
+# In[180]:
 
 
 ### YOUR CODE HERE - Plot the points for dataset2
@@ -297,18 +299,32 @@ plt.show()
 # 
 # Now once you understand, it is time to implement the gradient descent below. You may set the learning rate to 1e-6 or whatever value you think is best. As usual, calculate the mean squared error and plot your results. This time, training should be done using the training and validation sets, while the final mean squared error should be computed using the testing set.
 
-# In[ ]:
+# In[190]:
 
 
 ### YOUR CODE HERE - Implement gradient decent
 done = False
+a = 0.001
+error = float('+inf')
+m = np.random.normal()
+b = np.random.normal()
 while not done:
-    w = np.random.randint(train_x.size)
-    print(train_x[w])
-    
-    
+    i = np.random.randint(train_x.size)
+    x = train_x[i]
+    y = train_y[i]
+    db = a * (2 * y * x - 2 * m * x * x - 2 * b * x)
+    dm = a * (2 * y - 2 * m * x - 2 * b)
+    b += db
+    m += dm
+    cur_error = np.mean(np.power(m * valid_x - valid_y, 2))
+    if np.sqrt(db*db + dm*dm) < 0.00001:
+        done = True
 
 ### YOUR CODE HERE - Calculate the the mean squared error and plot the results.
+print("MSE: " + str(np.mean(np.power(m * test_x - test_y, 2))))
+plt.scatter(test_x, test_y, s=10)
+plt.plot(test_x, m * test_x + b, color='r')
+plt.show()
 
 
 # ## Turning In

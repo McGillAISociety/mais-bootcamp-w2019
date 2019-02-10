@@ -9,7 +9,7 @@
 
 # We will be using the following libraries for this homework assignment. For the questions requiring manual implementation, the pre-existing implementations from Sci-Kit Learn should *not* be used.
 
-# In[52]:
+# In[2]:
 
 
 import numpy as np
@@ -35,7 +35,7 @@ from sklearn.metrics import mean_squared_error
 # 
 # *Note that in practice, we usually aim for around a 70-20-10 split for train, valid, and test respectively, but due to limited data in our case, we will do an even split in order to have sufficient data for evaluation* 
 
-# In[53]:
+# In[3]:
 
 
 # Load the data and split into 3 equal sets
@@ -51,7 +51,7 @@ test.sort_values(by=[0], inplace=True)
 
 # Let's take a look at what our data looks like
 
-# In[54]:
+# In[4]:
 
 
 plt.scatter(train[0], train[1], s=10)
@@ -60,7 +60,7 @@ plt.show()
 
 # Let's apply a linear regression model using Sci-Kit learn and see what the results look like.
 
-# In[56]:
+# In[5]:
 
 
 # Reshape arrays since sci-kit learn only takes in 2D arrays
@@ -98,7 +98,7 @@ plt.show()
 # 
 # Below we show an example of a quadratic curve being fit to the data
 
-# In[57]:
+# In[6]:
 
 
 # Create polynomial features with degree 2
@@ -118,7 +118,7 @@ plt.show()
 
 # As you can see, we get a slightly better fit with a quadratic curve. Let's use the model to make predictions on our validation set and compute the mean squared error, which is the error which we wish to minimize.
 
-# In[58]:
+# In[7]:
 
 
 # Make predictions using pretrained model
@@ -138,7 +138,7 @@ plt.show()
 # 
 # Now it is your turn! Following the same format as above, implement a 10-degree polynomial regression model on the training data and plot your results. Use your model to predict the output of the validation set and calculate the mean square error. Report and plot the results. 
 
-# In[59]:
+# In[8]:
 
 
 ### YOUR CODE HERE - Fit a 10-degree polynomial using Sci-Kit Learn
@@ -171,7 +171,7 @@ plt.show()
 
 # Now repeat the above for a 20-degree polynomial regression model.
 
-# In[60]:
+# In[9]:
 
 
 ### YOUR CODE HERE - Fit a 20-degree polynomial using Sci-Kit Learn
@@ -224,41 +224,47 @@ plt.show()
 # 
 # *Suggestion - Use the original pandas dataframes variables named train, valid, and test instead of the reshaped arrays that were used specifically for Sci-Kit Learn. It will make your computations cleaner and more inuitive.*
 
-# In[122]:
+# In[30]:
 
 
 ### YOUR CODE HERE - Create the polynomial matrix ϕ(X)
-exponents = np.arange(0,11)
 X = np.array(train[0])
 Y = np.array(train[1])
 Y = Y.reshape(1, -1)
 ### YOUR CODE HERE - Find the weighted matrix W
 phi = np.column_stack((X, X**2, X**3, X**4, X**5, X**6, X**7, X**8, X**9, X**10))
-X = X.reshape(1, -1)
-transpose = X.T
-inv = np.linalg.inv(transpose.dot(X))
-print(inv.shape)
-W = inv.dot(transpose)
-print(W.shape)
-W = W.dot(Y)
-print(W.shape)
+transpose = phi.T
+inv = np.linalg.inv(transpose.dot(phi))
+W = inv.dot(phi.T)
+W = W.dot(Y.T)
 ### YOUR CODE HERE - Make predictions on the training set and calculate the root mean squared error. Plot the results.
-YPredicted = W.T.dot(phi)
-print(YPredicted.shape)
+YPredicted = np.matmul(phi,W)
+mse = np.sqrt(((YPredicted - Y) ** 2).mean())
+print(mse)
+plt.scatter(X, Y, s=10)
+plt.plot(X, YPredicted, color='r')
+plt.show()
 ### YOUR CODE HERE - Make predictions on the validation set and calculate the mean squared error. Plot the results.
-## The dimensions here don't make sense, I know W has to be a vector but from the above forumla we will get 49x49. I couldn't find
-## any online documentation to point me in the right direction
+xValid = np.array(valid[0])
+yValid = np.array(valid[1])
+phiValid = np.column_stack((xValid, xValid**2, xValid**3, xValid**4, xValid**5, xValid**6, xValid**7, xValid**8, xValid**9, xValid**10))
+yValidPred = np.matmul(phiValid, W)
+mseValid = np.sqrt(((yValidPred - yValid) ** 2).mean())
+print(mseValid)
+plt.scatter(xValid, yValid, s=10)
+plt.plot(xValid, yValidPred, color='r')
+plt.show()
 
 
 # For the rest of the assignment, we will use the other dataset named **dataset2.csv**. First load the csv and split the model into train, valid, and test sets as shown earlier in the assignment.
 
-# In[124]:
+# In[38]:
 
 
 ### YOUR CODE HERE - Load dataset2.csv and split into 3 equal sets
 # Load the data and split into 3 equal sets
 data2 = pd.read_csv('dataset2.csv', header=None)
-data2 = data.iloc[:, :-1]
+data2 = data2.iloc[:, :-1]
 train2, valid2, test2 = np.split(data2, [int(.33*len(data2)), int(.66*len(data2))])
 
 ### YOUR CODE HERE - Sort the data in order for plotting purposes later
@@ -269,11 +275,11 @@ test2.sort_values(by=[0], inplace=True)
 
 # Plot the data below to see what it looks like
 
-# In[126]:
+# In[39]:
 
 
 ### YOUR CODE HERE - Plot the points for dataset2
-plt.scatter(train[0], train[1], s=10)
+plt.scatter(train2[0], train2[1], s=10)
 plt.show()
 
 
@@ -300,14 +306,31 @@ plt.show()
 # 
 # Now once you understand, it is time to implement the gradient descent below. You may set the learning rate to 1e-6 or whatever value you think is best. As usual, calculate the mean squared error and plot your results. This time, training should be done using the training and validation sets, while the final mean squared error should be computed using the testing set.
 
-# In[3]:
+# In[54]:
 
 
 ### YOUR CODE HERE - Implement gradient decent
+learningRate = 10 ** -6
+m = 4.0
+b = 3.7
+X = train2[0]
+Y = train2[1]
+N = 1000
+yPred = (m * X) + b
+for i in range(N):
+          yPred = (m * X) + b
+          m_gradient = -(2/N) * sum(X * (Y - yPred))
+          b_gradient = -(2/N) * sum(Y - yPred)
+          m = m - (learningRate * m_gradient)
+          b = b - (learningRate * b_gradient)
 
 ### YOUR CODE HERE - Calculate the the mean squared error and plot the results.
-
-## Since I couldn't implement the linear regression, I couldn't compute an MSE and apply gradient descent
+yPred = (m * X) + b
+mse = sum([data**2 for data in (Y-yPred)]) / N
+print(mse)
+plt.scatter(X, Y, s=10)
+plt.plot(X, yPred, color='r')
+plt.show()
 
 
 # ## Turning In

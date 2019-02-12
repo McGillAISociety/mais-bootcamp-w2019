@@ -319,13 +319,14 @@ plt.show()
 
 # For the rest of the assignment, we will use the other dataset named **dataset2.csv**. First load the csv and split the model into train, valid, and test sets as shown earlier in the assignment.
 
-# In[2]:
+# In[5]:
 
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import operator
+import random
 get_ipython().run_line_magic('matplotlib', 'inline')
 
 ### YOUR CODE HERE - Load dataset2.csv and split into 3 equal sets
@@ -341,7 +342,7 @@ test.sort_values(by=[0], inplace=True)
 
 # Plot the data below to see what it looks like
 
-# In[3]:
+# In[6]:
 
 
 ### YOUR CODE HERE - Plot the points for dataset2
@@ -373,17 +374,54 @@ plt.show()
 # 
 # Now once you understand, it is time to implement the gradient descent below. You may set the learning rate to 1e-6 or whatever value you think is best. As usual, calculate the mean squared error and plot your results. This time, training should be done using the training and validation sets, while the final mean squared error should be computed using the testing set.
 
-# In[3]:
+# In[15]:
 
 
 learningRate = 1*10**-6
+theshold = 1*10**-5
 
 ### YOUR CODE HERE - Implement gradient decent
 
-# Choose initial w0 value
-# not quite sure what to do here...
+# Choose initial W value randomly
+W = np.array([random.random(), random.random()])
+
+# Generate matrixes for x and y values of data
+# x is (num data points) by 2 matrix where the first col is x**0
+# (the constant term) and the second col is x**1 (the x^1 term)
+x = np.empty((len(train), 2))
+for i in range(len(train)):
+    x[i][0] = 1
+    x[i][1] = train.iloc[i, 0]
+y = np.array(train[1])
+
+# Iteratively adjust W, until abs(W_(k+1) - W_k) is less than 𝜖 - the threshold value
+goodWFound = False
+while not goodWFound:
+    # Find gradiant
+    gradient = np.matmul(np.matmul(x.T, x), W) - np.matmul(x.T, y)
+    
+    # Find the value of W_(k+1) - the new and improved wieghts
+    W_next = W - learningRate * gradient
+    
+    # Check if exit condition is satisfied
+    goodWFound = (abs(W_next[0] - W[0]) < theshold and abs(W_next[1] - W[1]) < theshold)
+    
+    # Replace the old weights with new ones
+    W = W_next
+    
+# Calculate the predicted y values for the function with the given linear
+# fit
+yPredicted = W[0] * train[0] + W[1]
 
 ### YOUR CODE HERE - Calculate the the mean squared error and plot the results.
+mean = np.subtract(y_predicted, y).mean()
+mse = np.square(mean)
+print("Mean Squared Error: {}".format(mse))
+
+# Plot the generated fit
+plt.scatter(train[0], y, s=10)
+plt.plot(train[0], yPredicted, color='r')
+plt.show()
 
 
 # ## Turning In

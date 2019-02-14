@@ -2,8 +2,6 @@
 
 This is your fourth assignment! Much like your other assignments, please go through the python notebook labelled `assignment4.ipynb` and fill out the code. In addition, with this assignment use the Markdown option in Jupyter as required. Remember - this assignment is for your own learning experience, try and attempt it yourself before asking/looking for help (Google is your best friend)! That being said, if Google is not able to help you, slack and office hours is that second group of friends that you can always count on!
 
-Before starting, make sure you have everything in the installed - PyTorch, Numpy and Matplotlib. (ESPECIALLY PyTorch - you won't need the GPU version for this assignment! https://pytorch.org/get-started/locally/).
-
 ## Updating Your Branch
 
 You should work off the same branch that you completed the other assignments on by doing the following:

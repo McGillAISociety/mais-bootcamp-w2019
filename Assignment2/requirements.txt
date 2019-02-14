@@ -24,6 +24,10 @@ nbconvert==5.4.0
 nbformat==4.4.0
 notebook==5.7.4
 numpy==1.16.0
+<<<<<<< HEAD
+=======
+pandas==0.24.0
+>>>>>>> b8f0c376bb8c9edb14b72aed2c94909a64ccc8e6
 pandocfilters==1.4.2
 parso==0.3.1
 pickleshare==0.7.5

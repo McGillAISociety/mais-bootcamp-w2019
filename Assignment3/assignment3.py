@@ -12,6 +12,7 @@
 
 import torch
 import torchvision
+import torchvision.transforms as transforms
 import torch.nn as nn
 
 import numpy as np
@@ -41,57 +42,91 @@ print("B:")
 print(B)
 
 
-# Just like numpy, PyTorch supports operations like addition, multiplication, transposition, dot products, and concatenation of tensors.
+# Just like numpy, PyTorch supports operations like addition, multiplication, transposition, dot products, and concatenation of tensors. Look up and fill in the operations for the following:
 
 # In[ ]:
 
 
 print("Sum of A and B:")
-print(torch.add(A, B))
+### YOUR CODE HERE
 
 print('\n')
 
 print("Elementwise product of A and B:")
-print(torch.mul(A, B))
+### YOUR CODE HERE
 
 print('\n')
 
 print("Matrix product of A and B:")
-print(torch.matmul(A, B))
+### YOUR CODE HERE
 
 print('\n')
 
 print("Transposition of A:")
-print(torch.t(A))
+### YOUR CODE HERE
 
 print('\n')
 
 print("Concatenation of A and B in the 0th dimension:")
-print(torch.cat((A, B), dim=0))
+### YOUR CODE HERE
 
 print('\n')
 
 print("Concatenation of A and B in the 1st dimension:")
-print(torch.cat((A, B), dim=1))
+### YOUR CODE HERE
 
 
-# PyTorch also has tools for creating large tensors automatically, without explicity specifying the values:
+# PyTorch also has tools for creating large tensors automatically, without explicity specifying the values. Find the corresponding tensor initialzers and fill in below. Your print statements should look like the following:
+# 
+# 3x4x5 Tensor of Zeros:
+# ```
+# tensor([[[0., 0., 0., 0., 0.],
+#          [0., 0., 0., 0., 0.],
+#          [0., 0., 0., 0., 0.],
+#          [0., 0., 0., 0., 0.]],
+# 
+#         [[0., 0., 0., 0., 0.],
+#          [0., 0., 0., 0., 0.],
+#          [0., 0., 0., 0., 0.],
+#          [0., 0., 0., 0., 0.]],
+# 
+#         [[0., 0., 0., 0., 0.],
+#          [0., 0., 0., 0., 0.],
+#          [0., 0., 0., 0., 0.],
+#          [0., 0., 0., 0., 0.]]])
+# ```
+# 
+# 
+# 5x5 Tensor with random elements sampled from a standard normal distrubtion: (these should be randomly generated values)
+# ```
+# tensor([[ 0.2850,  0.5033, -1.8570, -1.6525,  0.3613],
+#         [-0.7505,  0.4573, -0.2454,  0.1668,  0.7241],
+#         [ 0.2976,  0.9827, -0.4879, -1.1144, -1.8235],
+#         [-0.0264,  0.7341, -0.2235,  0.5306,  0.8385],
+#         [ 0.2740,  0.3522, -0.5244, -0.1132,  0.5135]])
+# ```
+# 
+# Tensor created from a range:
+# ```
+# tensor([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+# ```
+# 
 
 # In[ ]:
 
 
 print("3x4x5 Tensor of Zeros:")
-print(torch.zeros(3, 4, 5))
+### YOUR CODE HERE
 
 print('\n')
 
 print("5x5 Tensor with random elements sampled from a standard normal distrubtion:")
-print(torch.randn(5, 5))
+### YOUR CODE HERE
 
 print('\n')
 
 print("Tensor created from a range:")
-print(torch.arange(10))
+### YOUR CODE HERE
 
 
 # Now, use PyTorch tensors to complete the following computation:
@@ -105,15 +140,8 @@ print(torch.arange(10))
 
 val = torch.arange(100).float()
 
-### <YOUR CODE HERE> ####
-val += 0.5
-val = torch.mul(val,val)
-val *= -1
-val = torch.exp(val)
-val = torch.sum(val)
-val *= 2
-val = val**2
-### </YOUR CODE HERE> ###
+### YOUR CODE HERE
+
 print(val)
 
 
@@ -126,11 +154,8 @@ print(val)
 
 val1 = torch.arange(10).float()
 
-### <YOUR CODE HERE> ####
-val2 = torch.exp(val1)
-val3 = torch.sum(val2)
-result1 = torch.div(val2, val3)
-### </YOUR CODE HERE> ###
+### YOUR CODE HERE
+
 print(result1)
 print(torch.sum(result1))
 
@@ -158,7 +183,6 @@ a = torch.tensor([1, 2], dtype=torch.float, requires_grad=True)
 b = torch.tensor([8, 3], dtype=torch.float, requires_grad=True)
 
 c = a + b
-c
 
 
 # Now, since a and b are both part of our computation graph, c will automatically be added:
@@ -272,31 +296,41 @@ print(module.bias.grad)
 
 # ## Fully-connected Networks for Image Classification
 
-# Using this knowledge, you will create a neural network in PyTorch for image classification on the CIFAR-10 dataset. PyTorch uses the $DataLoader$ class for you to load data into batches to feed to your learning algorithms - we highly suggest you familiarze yourself with this as well as the Dataset API here: https://pytorch.org/docs/stable/data.html
+# Using this knowledge, you will create a neural network in PyTorch for image classification on the CIFAR-10 dataset. PyTorch uses the $DataLoader$ class for you to load data into batches to feed to your learning algorithms - we highly suggest you familiarze yourself with this as well as the Dataset API here: https://pytorch.org/docs/stable/data.html. Fill in the below code to instantiate 3 DataLoaders for your training, validation and test sets. We would prefer that you NOT use the `torchvision.transform` API - we want you to get some practice in data preprocessing! Here are the transformations we want you to perform:
+# 1. Split the `val_and_test_set` into two separate datasets (each with 5000 elements)
+# 2. Convert all the `np.array` elements into `torch.tensor` elements.
+# 3. All values will be pixel values in our images are in the range of [0, 256]. Normalize this so that each pixel is in the range [0, 1].
+# 3. Flatten all images. All your images will be of shape (32, 32, 3), we need them as flat (32 * 32 * 3) size tensors as input to our neural network.
+# 4. Load everything into a DataLoader. (check how this works in the PyTorch docs!) 
+# 
+# Be sure to have the options `shuffle=True` (so that your dataset is shuffled so that samples from the dataset are not correlated) and also `batch_size=32` or larger. This is a standard minibatch size. If you're curious about what batch size does (and are somewhat familiar with statistics), here's a great answer https://stats.stackexchange.com/questions/316464/how-does-batch-size-affect-convergence-of-sgd-and-why.
 
-# In[5]:
+# In[2]:
 
 
-trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True)
-trainset = [(np.asarray(image) / 256, label) for image, label in trainset]
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=4096, shuffle=True)
+transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+trainset = torchvision.datasets.CIFAR10(root='./cifardata', train=True, download=True, transform=transform)
+#trainset = [(np.asarray(image) / 256, label) for image, label in trainset]
+Trsampler = torch.utils.data.SubsetRandomSampler(np.arange(5000,25000, dtype=np.int64))
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=4096, sampler = Trsampler, num_workers=2)
 
-val_and_test_set = torchvision.datasets.CIFAR10(root='./data', train=False, download=True)
-val_and_test_set = [(np.asarray(image) / 256, label) for image, label in val_and_test_set]
+testset = torchvision.datasets.CIFAR10(root='./cifardata', train=False, download=True, transform=transform)
 
-valset = val_and_test_set[:5000]
-valset = (
-    torch.stack([torch.tensor(pair[0]) for pair in valset]),
-    torch.tensor([pair[1] for pair in valset])
-)
-testset = val_and_test_set[5000:]
-testset = (
-    torch.stack([torch.tensor(pair[0]) for pair in testset]),
-    torch.tensor([pair[1] for pair in testset])
-)
+Vsampler = torch.utils.data.SubsetRandomSampler(np.arange(0, 5000, dtype=np.int64))
+Tsampler = torch.utils.data.SubsetRandomSampler(np.arange(0, 5000, dtype=np.int64))
+
+Valid_loader = torch.utils.data.DataLoader(trainset, batch_size=64,
+                                          sampler = Vsampler, shuffle=False, num_workers=2)
+Test_loader = torch.utils.data.DataLoader(testset, batch_size=256,
+                                          sampler = Tsampler, shuffle=False, num_workers=2)
+#val_and_test_set = [(np.asarray(image) / 256, label) for image, label in val_and_test_set]
+
+
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
+
+# CIFAR-10 consists of 32 x 32 color images, each corresponding to a unique class indicating the object present within the image. Use Matplotlib to print out the first few images.
 
 # In[ ]:
 
@@ -305,30 +339,13 @@ for images, x in trainloader:
     print(images.shape[0])
 
 
-# In[ ]:
-
-
-print(valset[0].shape)
-
-
-# CIFAR-10 consists of 32 x 32 color images, each corresponding to a unique class indicating the object present within the image. Here are a few examples:
-
-# In[ ]:
-
-
-for image, label in trainset[:4]:
-    plt.title(classes[label])
-    plt.imshow(image)
-    plt.show()
-
-
-# We've already split the dataset into training, validation, and test sets for you. 
+# Now try to build and train a plain neural network that properly classifies images in the CIFAR-10 dataset. Try to achieve at least around 40% accuracy (the higher the better!).
 # 
-# **Your assignment is to create and train a neural network that properly classifies images in the CIFAR-10 dataset. Try to achieve at least around 40% accuracy (the higher the better!).**
+# Take a look at the PyTorch documentation for some help in how to do this.
 # 
-# We've given you some starter code to achieve this task, but the rest is up to you. Google is your friend -- Looking things up on the PyTorch docs and on StackOverflow will be helpful.
+# Google is your friend -- Looking things up on the PyTorch docs and on StackOverflow will be helpful.
 
-# In[12]:
+# In[3]:
 
 
 class NeuralNet(nn.Module):
@@ -336,25 +353,48 @@ class NeuralNet(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
         
         super().__init__()
-        
-        ### <YOUR CODE HERE> ####
         self.weight_1 = nn.Parameter(torch.randn(input_dim, hidden_dim))
         self.weight_2 = nn.Parameter(torch.randn(hidden_dim, output_dim))
-        self.bias_1 = nn.Parameter(torch.full((1, hidden_dim), 3.1415))
-        self.bias_2 = nn.Parameter(torch.full((1, output_dim), 3.1415))
+        self.bias_1 = nn.Parameter(torch.full((1, hidden_dim), 1.41414141))
+        self.bias_2 = nn.Parameter(torch.full((1, output_dim), 1.41414141))
         self.sigmoid = nn.Sigmoid()
-        ### </YOUR CODE HERE> ###
+        ### YOUR CODE HERE
         
     def forward(self, data):
         
-        ### <YOUR CODE HERE> ####
-        hidden = self.sigmoid(torch.dot(data, self.weight_1) + self.bias_1)
-        return self.sigmoid(torch.dot(hidden, self.weight_2) + self.bias_2)
-        ### </YOUR CODE HERE> ###
+        ### YOUR CODE HERE
+        data = data.view(data.size()[0], -1)
+        
+        hidden = self.sigmoid(torch.mm(data, self.weight_1) + self.bias_1)
+        return self.sigmoid(torch.mm(hidden, self.weight_2) + self.bias_2)
         
 
 
-# In[18]:
+# The following NN works but is of only 11% accuracy :'(
+
+# In[ ]:
+
+
+class NeuralNet2(nn.Module):
+    
+    def __init__(self, input_dim, hidden_dim, output_dim):
+        
+        super().__init__()
+        self.conv1 = torch.nn.Conv2d(3, 24, kernel_size=3, stride=1, padding=1)
+        self.pool = torch.nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+        self.fc1 = torch.nn.Linear(input_dim, hidden_dim)
+        self.fc2 = torch.nn.Linear(hidden_dim, output_dim)
+        
+    def forward(self, data):
+        data = nn.functional.relu(self.conv1(data))
+        data = self.pool(data)
+        data = data.view(-1, 24*16*16)
+        data = torch.nn.functional.relu(self.fc1(data))
+        data = self.fc2(data)
+        return(data)
+
+
+# In[ ]:
 
 
 def reshape(images):
@@ -363,52 +403,41 @@ def reshape(images):
     into the proper shape (batch_size, width * height * channels) that the model can accept.
     '''
     x = images.reshape(images.shape[0], -1).float
-    print(x.shape)
     return x
-    
 
+
+# The following cell was for initial testing purpose which only gave me an accuracy of 11% :'(
 
 # In[ ]:
-
-
-from torchvision import datasets, transforms, models
-model = models.resnet50(pretrained=True)
-
-
-# the following code doesnt compile
-
-# In[20]:
 
 
 from tqdm import tqdm
 from torch.autograd import Variable
 EPOCHS = 2
 LEARNING_RATE = 0.01
-INPUT_SIZE = 400
-HIDDEN_SIZE = 120
+INPUT_SIZE = 24*16*16
+HIDDEN_SIZE = 640
 
 OUTPUT_SIZE = 10
 
 net = NeuralNet(INPUT_SIZE, HIDDEN_SIZE, OUTPUT_SIZE)
-
+secondnet = NeuralNet2(INPUT_SIZE, HIDDEN_SIZE, OUTPUT_SIZE)
 ### Define an optimizer and a loss function here. We pass our network parameters to our optimizer here so we know
 ### which values to update by how much.
-optimizer = torch.optim.Adam(net.parameters(), lr=LEARNING_RATE)
-
-
-print(net)
+optimizer = torch.optim.SGD(net.parameters(), lr=LEARNING_RATE)
+loss_fn = nn.CrossEntropyLoss()
 
 for epoch in tqdm(range(EPOCHS)):
     
     total_loss = 0
     
     for images, labels in trainloader:
-        print(images.shape)
-        data = reshape(images)
+        print(images.size())
+        #data = reshape(images)
         
         ### <YOUR CODE HERE> ####
-        outputs = net(data)
-        loss = nn.CrossEntropyLoss(outputs, labels)
+        outputs = secondnet(Variable(images))
+        loss = loss_fn(outputs, Variable(labels))
         
         # Zero gradients, call .backward(), and step the optimizer.
         optimizer.zero_grad()
@@ -420,26 +449,93 @@ for epoch in tqdm(range(EPOCHS)):
         
     average_loss = total_loss / len(trainloader)
     
-    val_output = net(reshape(valset[0]))
-    val_loss = loss_fn(val_output, valset[1]).item()
+    val_loss = 0
+    for inputs, labels in Valid_loader:
+            
+        inputs, labels = Variable(inputs), Variable(labels)
+
+        val_outputs = secondnet(inputs)
+        val_loss_size = loss_fn(val_outputs, labels)
+        val_loss += val_loss_size.item()
+    true_val_loss = val_loss/len(Valid_loader)
     
-    print("(epoch, train_loss, val_loss) = ({0}, {1}, {2})".format(epoch, average_loss, val_loss))
+    print("(epoch, train_loss, val_loss) = ({0}, {1}, {2})".format(epoch, average_loss, true_val_loss))
 
 
-# In[ ]:
+# In[7]:
 
 
-### Here, we test the overall accuracy of our model. ###
-test_output = net(reshape(testset[0]))
-test_maxes = torch.argmax(test_output, dim=1)
-print("Test accuracy:", torch.sum(test_maxes == testset[1]).item() / float(test_maxes.shape[0]))
+from tqdm import tqdm
+from torch.autograd import Variable
+EPOCHS = 64
+LEARNING_RATE = 0.01
+INPUT_SIZE = 3*32*32
+HIDDEN_SIZE = 640
+
+OUTPUT_SIZE = 10
+
+net = NeuralNet(INPUT_SIZE, HIDDEN_SIZE, OUTPUT_SIZE)
+### Define an optimizer and a loss function here. We pass our network parameters to our optimizer here so we know
+### which values to update by how much.
+optimizer = torch.optim.Adam(net.parameters(), lr=LEARNING_RATE)
+loss_fn = nn.CrossEntropyLoss()
+
+for epoch in tqdm(range(EPOCHS)):
+    
+    total_loss = 0
+    
+    for images, labels in trainloader:
+        #data = reshape(images)
+        data = torch.as_tensor(images)
+        ### <YOUR CODE HERE> ####
+        outputs = net(data)
+        loss = loss_fn(outputs, Variable(labels))
+        
+        # Zero gradients, call .backward(), and step the optimizer.
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        ### </YOUR CODE HERE> ###
+        
+        total_loss += loss.item()
+        
+    average_loss = total_loss / len(trainloader)
+    
+    val_loss = 0
+    for inputs, labels in Valid_loader:
+            
+        inputs, labels = Variable(inputs), Variable(labels)
+
+        val_outputs = net(inputs)
+        val_loss_size = loss_fn(val_outputs, labels)
+        val_loss += val_loss_size.item()
+        
+    true_val_loss = val_loss/len(Valid_loader)
+    print("(epoch, train_loss, val_loss) = ({0}, {1}, {2})".format(epoch, average_loss, true_val_loss))
+
+
+# In[8]:
+
+
+### YOUR CODE HERE - Here, we test the overall accuracy of our model.
+    
+correct = 0
+total = 0
+with torch.no_grad():
+    for data in Test_loader:
+        images, labels = data
+        images, labels = Variable(images), Variable(labels)
+        outputs = net(images)
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+print('Accuracy of the network on the 5000 test images: %d %%' % (
+    100 * correct / total))
 
 
 # ## Submission
 # For submiting, please download this notebook as a `.py` file. To do so, click on `File -> Download as -> Python (.py)`. Put the downloaded `assignment3.py` into this folder and commit the file.
 
-# In[ ]:
-
-
-
-
+# ## Additional Resources
+# If you're interested in using PyTorch as a framework for deep learning (especially for your final projects! We highly recommend you use this!), check out the PyTorch tutorials: https://pytorch.org/tutorials/. They have tutorials for everything from image to text to reinforcement learning tasks.

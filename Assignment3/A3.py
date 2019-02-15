@@ -357,13 +357,13 @@ print(' '.join('%5s' % classes[labels[j]] for j in range(32)))
 # 
 # Google is your friend -- Looking things up on the PyTorch docs and on StackOverflow will be helpful.
 
-# In[23]:
+# In[21]:
 
 
 import torch.nn as nn
 import torch.nn.functional as F
 
-# (Attempted) to implement a CNN instead of plain NN. 
+# I was able to achieve ~45% accuracy with a CNN compared to ~11% with a plain NN, so I went with a CNN. 
 class NeuralNet(nn.Module):
     def __init__(self):
         super(NeuralNet, self).__init__()
@@ -384,7 +384,7 @@ class NeuralNet(nn.Module):
         return x
 
 
-# In[24]:
+# In[22]:
 
 
 import torch.optim as optim
@@ -394,8 +394,6 @@ LEARNING_RATE = 0.01
 
 net = NeuralNet()
 
-### Define an optimizer and a loss function here. We pass our network parameters to our optimizer here so we know
-### which values to update by how much.
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(net.parameters(), lr=LEARNING_RATE, momentum=0.9)
 
@@ -435,7 +433,7 @@ with torch.no_grad():
 print("(epoch, train_loss, val_acc) = ({0}, {1}, {2})".format(epoch, average_loss, val_acc))
 
 
-# In[25]:
+# In[23]:
 
 
 ### YOUR CODE HERE - Here, we test the overall accuracy of our model.

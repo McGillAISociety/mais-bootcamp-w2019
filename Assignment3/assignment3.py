@@ -7,7 +7,7 @@
 
 # Let's start by importing the libraries that we'll need:
 
-# In[33]:
+# In[93]:
 
 
 import torch
@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 
 # In PyTorch, data is stored as multidimensional arrays, called tensors. Tensors are very similar to numpy's ndarrays, and they support many of the same operations. We can define tensors by explicity setting the values, using a python list:
 
-# In[34]:
+# In[94]:
 
 
 A = torch.tensor([[1, 2], [4, -3]])
@@ -43,7 +43,7 @@ print(B)
 
 # Just like numpy, PyTorch supports operations like addition, multiplication, transposition, dot products, and concatenation of tensors. Look up and fill in the operations for the following:
 
-# In[35]:
+# In[95]:
 
 
 print("Sum of A and B:")
@@ -119,7 +119,7 @@ print('\n')
 # ```
 # 
 
-# In[36]:
+# In[96]:
 
 
 print("3x4x5 Tensor of Zeros:")
@@ -146,7 +146,7 @@ print(result)
 # 
 # If you're right, you should get something very close to $$\pi \approx 3.14 .$$
 
-# In[37]:
+# In[97]:
 
 
 val = torch.arange(100).float()
@@ -168,7 +168,7 @@ print(sum)
 # $$softmax(x_i) = \frac{e^{x_i}}{\sum_{j = 0}^{n - 1} e^{x_j}}$$
 # Calculate the softmax function for the $val$ tensor below where $n$ is the number of elements in $val$, and $x_i$ is each element in $val$. DO NOT use the built-in softmax function. We should end up with a tensor that represents a probability distribution that sums to 1. (hint: you should calculate the sum of the exponents first)
 
-# In[38]:
+# In[98]:
 
 
 val1 = torch.arange(10).float()
@@ -197,7 +197,7 @@ print(torch.sum(result1))
 
 # Let's take a look at a simple computation to see what autograd is doing. First, let's create two tensors and add them together. To signal to PyTorch that we want to build a computation graph, we must set the flag requires_grad to be True when creating a tensor.
 
-# In[39]:
+# In[99]:
 
 
 a = torch.tensor([1, 2], dtype=torch.float, requires_grad=True)
@@ -208,7 +208,7 @@ c = a + b
 
 # Now, since a and b are both part of our computation graph, c will automatically be added:
 
-# In[40]:
+# In[100]:
 
 
 c.requires_grad
@@ -218,7 +218,7 @@ c.requires_grad
 
 # In the case of c, its grad_fn is of type AddBackward1, PyTorch's notation for a tensor that was created by adding two tensors together:
 
-# In[41]:
+# In[101]:
 
 
 c.grad_fn
@@ -226,7 +226,7 @@ c.grad_fn
 
 # Every grad_fn has an attribute called next_functions: This attribute lets the grad_fn pass on its gradient to the tensors that were used to compute it.
 
-# In[42]:
+# In[102]:
 
 
 c.grad_fn.next_functions
@@ -234,7 +234,7 @@ c.grad_fn.next_functions
 
 # If we extract the tensor values corresponding to each of these functions, we can see a and b! 
 
-# In[43]:
+# In[103]:
 
 
 print(c.grad_fn.next_functions[0][0].variable)
@@ -251,7 +251,7 @@ print(c.grad_fn.next_functions[1][0].variable)
 
 # For example, let's define a logistic regression module. This module will contain two parameters: The weight vector and the bias. Calling the _forward_ method will output a probability between zero and one.
 
-# In[44]:
+# In[104]:
 
 
 class LogisticRegression(nn.Module):
@@ -272,7 +272,7 @@ class LogisticRegression(nn.Module):
 
 # We can now create a random vector and pass it through the module:
 
-# In[45]:
+# In[105]:
 
 
 module = LogisticRegression()
@@ -280,7 +280,7 @@ vector = torch.randn(10)
 output = module(vector)
 
 
-# In[46]:
+# In[106]:
 
 
 output
@@ -288,13 +288,13 @@ output
 
 # Now, say that our loss function is mean-squared-error and our target value is 1. We can then write our loss as:
 
-# In[47]:
+# In[107]:
 
 
 loss = (output - 1) ** 2
 
 
-# In[48]:
+# In[108]:
 
 
 loss
@@ -302,13 +302,13 @@ loss
 
 # To minimize this loss, we just call loss.backward(), and all the gradients will be computed for us! Note that wrapping a tensor as a Parameter will automatically set requires_grad = True.
 
-# In[49]:
+# In[109]:
 
 
 loss.backward()
 
 
-# In[50]:
+# In[110]:
 
 
 print(module.weight.grad)
@@ -326,7 +326,27 @@ print(module.bias.grad)
 # 
 # Be sure to have the options `shuffle=True` (so that your dataset is shuffled so that samples from the dataset are not correlated) and also `batch_size=32` or larger. This is a standard minibatch size. If you're curious about what batch size does (and are somewhat familiar with statistics), here's a great answer https://stats.stackexchange.com/questions/316464/how-does-batch-size-affect-convergence-of-sgd-and-why.
 
-# In[92]:
+# In[121]:
+
+
+from torch.utils.data.dataset import Dataset  # For custom datasets
+
+class CustomDataset(Dataset):
+    def __init__(self, images, labels):
+        # First column contains the image paths
+        self.image_arr = images
+        # Second column is the labels
+        self.label_arr = labels
+        # Calculate len
+        self.data_len = len(self.label_arr)
+
+    def __getitem__(self, index):
+
+        return (self.image_arr[index], self.label_arr[index])
+
+    def __len__(self):
+        return self.data_len
+
 
 
 trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True)
@@ -339,6 +359,9 @@ val_array = []
 test_array = []
 train_array = []
 train_features_array = []
+val_features_array = []
+test_features_array = []
+
 
 for i in range(trainset.__len__()):
     train_array.append(torch.from_numpy(np.array(trainset[i][0]) / 256).view(-1))
@@ -346,15 +369,18 @@ for i in range(trainset.__len__()):
 
 for i in range(val_set.__len__()):
     val_array.append(torch.from_numpy(np.array(val_set[i][0]) / 256).view(-1))
+    val_features_array.append(val_set[i][1])
     
 for i in range(test_set.__len__()):
     test_array.append(torch.from_numpy(np.array(test_set[i][0]) / 256).view(-1))
+    test_features_array.append(test_set[i][1])
     
-val_set = torch.utils.data.TensorDataset(torch.cat(val_array))
-test_set = torch.utils.data.TensorDataset(torch.cat(test_array))
-train_features = torch.cat(train_array)
-train_targets = torch.from_numpy(np.array(train_features_array))
-train_set = torch.utils.data.TensorDataset(train_features, train_targets)
+train_set = CustomDataset(train_array, train_features_array)
+val_set = CustomDataset(val_array, val_features_array)
+test_set = CustomDataset(test_array, test_features_array)
+
+#test_set = torch.utils.data.TensorDataset(torch.cat(test_array))
+#train_set = torch.utils.data.TensorDataset(train_features, train_targets)
 #train_features_set = torch.utils.data.TensorDataset(torch.from_numpy(np.array(train_features_array)))
 
 
@@ -370,7 +396,7 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship'
 
 # CIFAR-10 consists of 32 x 32 color images, each corresponding to a unique class indicating the object present within the image. Use Matplotlib to print out the first few images.
 
-# In[86]:
+# In[122]:
 
 
 ### YOUR CODE HERE - Grab a few examples from trainset and plot them
@@ -385,7 +411,7 @@ for i in range(5):
 # 
 # Google is your friend -- Looking things up on the PyTorch docs and on StackOverflow will be helpful.
 
-# In[87]:
+# In[123]:
 
 
 class NeuralNet(nn.Module):
@@ -402,19 +428,19 @@ class NeuralNet(nn.Module):
     def forward(self, data):
         
         ### YOUR CODE HERE
-        h_relu = self.linear1(x).clamp(min=0)
+        h_relu = self.linear1(data).clamp(min=0)
         y_pred = self.linear2(h_relu)
         return y_pred
 
         
 
 
-# In[89]:
+# In[135]:
 
 
 EPOCHS = 2
 LEARNING_RATE = 0.001
-INPUT_SIZE = 1000
+INPUT_SIZE = 32*32*3
 HIDDEN_SIZE = 100
 
 OUTPUT_SIZE = 10
@@ -436,8 +462,8 @@ for epoch in range(EPOCHS):
                 
         ### YOUR CODE HERE - Zero gradients, call .backward(), and step the optimizer.
         optimizer.zero_grad()
-        outputs = net(images)
-        loss = criterion(outputs, labels)
+        outputs = net(images.float())
+        loss = loss_fn(outputs, labels)
         loss.backward()
         optimizer.step()
                 
@@ -448,8 +474,10 @@ for epoch in range(EPOCHS):
     ### Calculate validation accuracy here by iterating through the validation set.
     ### We use torch.no_grad() here because we don't want to accumulate gradients in our function.
     with torch.no_grad():
+        total = 0
+        correct = 0
         for images, labels in valloader:
-            outputs = net(images)
+            outputs = net(images.float())
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
@@ -458,14 +486,15 @@ for epoch in range(EPOCHS):
     print("(epoch, train_loss, val_acc) = ({0}, {1}, {2})".format(epoch, average_loss, val_acc))
 
 
-# In[59]:
+# In[136]:
 
 
 ### YOUR CODE HERE - Here, we test the overall accuracy of our model.
 with torch.no_grad():
+    test_acc = 0
     for data in testloader:
         images, labels = data
-        outputs = net(images)
+        outputs = net(images.float())
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()

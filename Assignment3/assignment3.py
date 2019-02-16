@@ -297,50 +297,64 @@ print(module.bias.grad)
 
 # ## Fully-connected Networks for Image Classification
 
-# Using this knowledge, you will create a neural network in PyTorch for image classification on the CIFAR-10 dataset. PyTorch uses the $DataLoader$ class for you to load data into batches to feed to your learning algorithms - we highly suggest you familiarze yourself with this as well as the Dataset API here: https://pytorch.org/docs/stable/data.html
+# Using this knowledge, you will create a neural network in PyTorch for image classification on the CIFAR-10 dataset. PyTorch uses the $DataLoader$ class for you to load data into batches to feed to your learning algorithms - we highly suggest you familiarze yourself with this as well as the Dataset API here: https://pytorch.org/docs/stable/data.html. Fill in the below code to instantiate 3 DataLoaders for your training, validation and test sets. We would prefer that you NOT use the `torchvision.transform` API - we want you to get some practice in data preprocessing! Here are the transformations we want you to perform:
+# 1. Split the `val_and_test_set` into two separate datasets (each with 5000 elements)
+# 2. Convert all the `np.array` elements into `torch.tensor` elements.
+# 3. All values will be pixel values in our images are in the range of [0, 256]. Normalize this so that each pixel is in the range [0, 1].
+# 3. Flatten all images. All your images will be of shape (32, 32, 3), we need them as flat (32 * 32 * 3) size tensors as input to our neural network.
+# 4. Load everything into a DataLoader. (check how this works in the PyTorch docs!) 
+# 
+# Be sure to have the options `shuffle=True` (so that your dataset is shuffled so that samples from the dataset are not correlated) and also `batch_size=32` or larger. This is a standard minibatch size. If you're curious about what batch size does (and are somewhat familiar with statistics), here's a great answer https://stats.stackexchange.com/questions/316464/how-does-batch-size-affect-convergence-of-sgd-and-why.
 
-# In[44]:
+# In[2]:
 
 
 trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True)
-trainset = [(np.asarray(image) / 256, label) for image, label in trainset]
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=4096, shuffle=True)
 
 val_and_test_set = torchvision.datasets.CIFAR10(root='./data', train=False, download=True)
+
+#images.reshape(images.shape[0], -1).float()
+
+### YOUR CODE HERE
 val_and_test_set = [(np.asarray(image) / 256, label) for image, label in val_and_test_set]
 
+#trainloader
+trainset = [(np.asarray(image) / 256, label) for image, label in trainset]
+trainset = [(torch.tensor(image.reshape(1, -1)), torch.tensor(label)) for image, label in trainset]
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=100, shuffle=True)
+
+#valloader
 valset = val_and_test_set[:5000]
-valset = (
-    torch.stack([torch.tensor(pair[0]) for pair in valset]),
-    torch.tensor([pair[1] for pair in valset])
-)
+valset = [(torch.tensor(image.reshape(1,-1)), torch.tensor(label)) for image, label in valset]
+valloader = torch.utils.data.DataLoader(valset, batch_size=100, shuffle=True)
+
+#test loader
 testset = val_and_test_set[5000:]
-testset = (
-    torch.stack([torch.tensor(pair[0]) for pair in testset]),
-    torch.tensor([pair[1] for pair in testset])
-)
+testset = [(torch.tensor(image.reshape(1,-1)), torch.tensor(label)) for image, label in valset]
+testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=True)
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 
 # CIFAR-10 consists of 32 x 32 color images, each corresponding to a unique class indicating the object present within the image. Here are a few examples:
 
-# In[45]:
+# In[59]:
 
 
+### YOUR CODE HERE - Grab a few examples from trainset and plot them
 for image, label in trainset[:4]:
     plt.title(classes[label])
-    plt.imshow(image)
+    plt.imshow(image.reshape(32,32,-1))
     plt.show()
+    
+    #colours differ because we normalized them
 
 
-# We've already split the dataset into training, validation, and test sets for you. 
-# 
 # **Your assignment is to create and train a neural network that properly classifies images in the CIFAR-10 dataset. Try to achieve at least around 40% accuracy (the higher the better!).**
 # 
 # We've given you some starter code to achieve this task, but the rest is up to you. Google is your friend -- Looking things up on the PyTorch docs and on StackOverflow will be helpful.
 
-# In[117]:
+# In[3]:
 
 
 class NeuralNet(nn.Module):
@@ -352,15 +366,15 @@ class NeuralNet(nn.Module):
         ### <YOUR CODE HERE> ####
         #hidden layer
         #weights: each row corresponds to a different feature, each column corresponds to a node in the hidden layer
-        self.weights1 = nn.Parameter(torch.randn(input_dim, hidden_dim))
+        self.weights1 = nn.Parameter(torch.randn(input_dim, hidden_dim).double())
         #bias:
-        self.bias1 = nn.Parameter(torch.randn(1, hidden_dim))
+        self.bias1 = nn.Parameter(torch.randn(1, hidden_dim).double())
         
         #output layer
         #weights: each row corresponds to a different output from the hidden layer, each column corresponds to a node in the output layer
-        self.weights2 = nn.Parameter(torch.randn(hidden_dim, output_dim))
+        self.weights2 = nn.Parameter(torch.randn(hidden_dim, output_dim).double())
         #bias:
-        self.bias2 = nn.Parameter(torch.randn(1, output_dim))
+        self.bias2 = nn.Parameter(torch.randn(1, output_dim).double())
         
         #define activation function
         self.activation = nn.Sigmoid()
@@ -386,28 +400,16 @@ class NeuralNet(nn.Module):
         #activation function
         output = self.activation(temp3) # final activation function
         
-        return output
+        return output.squeeze()
     
         ### </YOUR CODE HERE> ###
         
 
 
-# In[77]:
+# In[7]:
 
 
-def reshape(images):
-    '''
-    Reshapes a set of images of the shape (batch_size, width, height, channels)
-    into the proper shape (batch_size, width * height * channels) that the model can accept.
-    '''
-    return images.reshape(images.shape[0], -1).float()
-    
-
-
-# In[120]:
-
-
-EPOCHS = 6
+EPOCHS = 5
 LEARNING_RATE = 0.001
 INPUT_SIZE = 32*32*3 #size corresponds with number of features
 HIDDEN_SIZE = 1000
@@ -429,11 +431,9 @@ for epoch in range(EPOCHS):
     
     for images, labels in trainloader:
         
-        data = reshape(images)
-        
         ### <YOUR CODE HERE> ####
         
-        output = net(data)
+        output = net(images)
         loss = loss_fn(output, labels)
         
         # Zero gradients, call .backward(), and step the optimizer.
@@ -448,19 +448,34 @@ for epoch in range(EPOCHS):
         
     average_loss = total_loss / len(trainloader)
     
-    val_output = net(reshape(valset[0]))
-    val_loss = loss_fn(val_output, valset[1]).item()
+    ### Calculate validation accuracy here by iterating through the validation set.
+    ### We use torch.no_grad() here because we don't want to accumulate gradients in our function.
+    with torch.no_grad():
+        val_acc = 0
+        
+        for images, labels in valloader:
+            val_pred = net(images)
+            val_argmax = torch.argmax(val_pred, dim=1)
+            val_acc += torch.sum(val_argmax == labels).item()
     
-    print("(epoch, train_loss, val_loss) = ({0}, {1}, {2})".format(epoch, average_loss, val_loss))
+    print("(epoch, train_loss, val_acc) = ({0}, {1}, {2})".format(epoch, average_loss, val_acc/float(len(valloader.dataset))))
 
 
-# In[121]:
+# In[8]:
 
 
 ### Here, we test the overall accuracy of our model. ###
-test_output = net(reshape(testset[0]))
-test_maxes = torch.argmax(test_output, dim=1)
-print("Test accuracy:", torch.sum(test_maxes == testset[1]).item() / float(test_maxes.shape[0]))
+with torch.no_grad():
+    test_acc = 0
+        
+    for images, labels in valloader:
+        test_pred = net(images)
+        test_argmax = torch.argmax(test_pred, dim=1)
+        test_acc += torch.sum(test_argmax == labels).item()
+        
+    print("Test accuracy:", (test_acc/ float(len(testloader.dataset))))
+    
+    #we get a test accuracy of 35.88%
 
 
 # ## Submission

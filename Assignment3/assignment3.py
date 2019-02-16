@@ -326,7 +326,7 @@ print(module.bias.grad)
 # 
 # Be sure to have the options `shuffle=True` (so that your dataset is shuffled so that samples from the dataset are not correlated) and also `batch_size=32` or larger. This is a standard minibatch size. If you're curious about what batch size does (and are somewhat familiar with statistics), here's a great answer https://stats.stackexchange.com/questions/316464/how-does-batch-size-affect-convergence-of-sgd-and-why.
 
-# In[69]:
+# In[92]:
 
 
 trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True)
@@ -338,9 +338,11 @@ val_set, test_set = torch.utils.data.random_split(val_and_test_set, [5000,5000])
 val_array = []
 test_array = []
 train_array = []
+train_features_array = []
 
 for i in range(trainset.__len__()):
     train_array.append(torch.from_numpy(np.array(trainset[i][0]) / 256).view(-1))
+    train_features_array.append(trainset[i][1])
 
 for i in range(val_set.__len__()):
     val_array.append(torch.from_numpy(np.array(val_set[i][0]) / 256).view(-1))
@@ -350,7 +352,10 @@ for i in range(test_set.__len__()):
     
 val_set = torch.utils.data.TensorDataset(torch.cat(val_array))
 test_set = torch.utils.data.TensorDataset(torch.cat(test_array))
-train_set = torch.utils.data.TensorDataset(torch.cat(train_array))
+train_features = torch.cat(train_array)
+train_targets = torch.from_numpy(np.array(train_features_array))
+train_set = torch.utils.data.TensorDataset(train_features, train_targets)
+#train_features_set = torch.utils.data.TensorDataset(torch.from_numpy(np.array(train_features_array)))
 
 
 trainset = torch.utils.data.TensorDataset(torch.from_numpy(trainset.train_data))
@@ -365,7 +370,7 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship'
 
 # CIFAR-10 consists of 32 x 32 color images, each corresponding to a unique class indicating the object present within the image. Use Matplotlib to print out the first few images.
 
-# In[70]:
+# In[86]:
 
 
 ### YOUR CODE HERE - Grab a few examples from trainset and plot them
@@ -380,7 +385,7 @@ for i in range(5):
 # 
 # Google is your friend -- Looking things up on the PyTorch docs and on StackOverflow will be helpful.
 
-# In[71]:
+# In[87]:
 
 
 class NeuralNet(nn.Module):
@@ -404,7 +409,7 @@ class NeuralNet(nn.Module):
         
 
 
-# In[73]:
+# In[89]:
 
 
 EPOCHS = 2
@@ -427,12 +432,11 @@ for epoch in range(EPOCHS):
     
     total_loss = 0
     
-    for i, data in enumerate(trainloader, 0):
-        # get the inputs
-        inputs, labels = data[0], data[1]                
+    for images, labels in trainloader :
+                
         ### YOUR CODE HERE - Zero gradients, call .backward(), and step the optimizer.
         optimizer.zero_grad()
-        outputs = net(inputs)
+        outputs = net(images)
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
@@ -444,8 +448,7 @@ for epoch in range(EPOCHS):
     ### Calculate validation accuracy here by iterating through the validation set.
     ### We use torch.no_grad() here because we don't want to accumulate gradients in our function.
     with torch.no_grad():
-        for data in valloader:
-            images, labels = data
+        for images, labels in valloader:
             outputs = net(images)
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)

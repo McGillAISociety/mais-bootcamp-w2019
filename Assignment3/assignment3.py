@@ -314,7 +314,7 @@ print(module.bias.grad)
 # 
 # Be sure to have the options `shuffle=True` (so that your dataset is shuffled so that samples from the dataset are not correlated) and also `batch_size=32` or larger. This is a standard minibatch size. If you're curious about what batch size does (and are somewhat familiar with statistics), here's a great answer https://stats.stackexchange.com/questions/316464/how-does-batch-size-affect-convergence-of-sgd-and-why.
 
-# In[47]:
+# In[23]:
 
 
 trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True)
@@ -338,7 +338,7 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship'
 
 # CIFAR-10 consists of 32 x 32 color images, each corresponding to a unique class indicating the object present within the image. Use Matplotlib to print out the first few images.
 
-# In[48]:
+# In[24]:
 
 
 ### YOUR CODE HERE - Grab a few examples from trainset and plot them
@@ -354,7 +354,7 @@ for image, label in trainset[:3]:
 # 
 # Google is your friend -- Looking things up on the PyTorch docs and on StackOverflow will be helpful.
 
-# In[146]:
+# In[48]:
 
 
 class NeuralNet(nn.Module):
@@ -364,38 +364,27 @@ class NeuralNet(nn.Module):
         super().__init__()
         
         ### YOUR CODE HERE
-        self.conv1=nn.Conv2d(input_dim,hidden_dim,kernel_size=5)
-        self.conv2=nn.Conv2d(hidden_dim,output_dim,kernel_size=5)
-        self.pool = nn.MaxPool2d(2, 2)
         self.fc1 = nn.Linear(input_dim, hidden_dim) 
-        #self.sigmoid=nn.Sigmoid()
-        self.fc1 = nn.Linear(output_dim*5*5, input_dim)
-        self.fc2 = nn.Linear(input_dim, hidden_dim) 
-        self.fc3 = nn.Linear(hidden_dim, output_dim)
+        self.sigmoid=nn.Sigmoid()
+        self.fc2 = nn.Linear(hidden_dim, output_dim)
         
         
     def forward(self, data):
         
         ### YOUR CODE HERE
-        x=self.pool(torch.nn.functional.relu(self.conv1(data)))
-        x=self.pool(torch.nn.functional.relu(self.conv2(x)))
-        x=x.view(-1,input_dim)
-        x=torch.nn.functional.relu(self.fc1(x))
-        x=torch.nn.functional.relu(self.f2(x))
-        #out = self.fc1(data)
-        #out = self.sigmoid(out)
-        #out = self.fc2(out)
-        #return self.sigmoid(out)
-        return torch.nn.functional.log_softmax(x)
+        x=self.fc1(data)
+        x=self.sigmoid(x)
+        x=self.fc2(x)
+        return torch.nn.functional.log_softmax(x, dim=1)
 
 
-# In[147]:
+# In[49]:
 
 
-EPOCHS = 10
-LEARNING_RATE = 0.1
+EPOCHS = 50
+LEARNING_RATE = 0.001
 INPUT_SIZE = 32*32*3
-HIDDEN_SIZE = 10
+HIDDEN_SIZE = 20
 
 OUTPUT_SIZE = 10
 
@@ -416,6 +405,7 @@ for epoch in range(EPOCHS):
                 
         ### YOUR CODE HERE - Zero gradients, call .backward(), and step the optimizer.
         images=images.view(images.shape[0],-1).float()
+        images.require_grad=True
         optimizer.zero_grad()
         outputs = net(images)
         loss = loss_fn(outputs,labels)
@@ -431,25 +421,25 @@ for epoch in range(EPOCHS):
     with torch.no_grad():
         correction=0.0
         for images,labels in valloader:
-            images=images.view(images.shape[0], -1).float()
+            images=images.view(images.shape[0],-1).float()
             val_output = net(images)
             val_output = torch.argmax(val_output.reshape(val_output.shape[0], -1), dim=1)
-            correction = torch.sum(val_output == labels).item() / float(val_output.shape[0])
+            correction += torch.sum(val_output == labels).item() / float(val_output.shape[0])
         val_acc=correction/len(valloader)
     print("(epoch, train_loss, val_acc) = ({0}, {1}, {2})".format(epoch, average_loss, val_acc))
 
 
-# In[148]:
+# In[50]:
 
 
 ### YOUR CODE HERE - Here, we test the overall accuracy of our model.
 with torch.no_grad():
     correction=0.0
     for images,labels in testloader:
-        images=images.view(images.shape[0], -1).float()
+        images=images.view(images.shape[0],-1).float()
         test_output = net(images)
-        test_output = torch.argmax(val_output.reshape(test_output.shape[0], -1), dim=1)
-        correction = torch.sum(test_output == labels).item() / float(test_output.shape[0])
+        test_output = torch.argmax(test_output.reshape(test_output.shape[0], -1), dim=1)
+        correction += torch.sum(test_output == labels).item() / float(test_output.shape[0])
     test_acc=correction/len(testloader)
     print("Test accuracy:", test_acc)
 

@@ -7,7 +7,7 @@
 
 # Let's start by importing the libraries that we'll need:
 
-# In[1]:
+# In[2]:
 
 
 import torch
@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 
 # In PyTorch, data is stored as multidimensional arrays, called tensors. Tensors are very similar to numpy's ndarrays, and they support many of the same operations. We can define tensors by explicity setting the values, using a python list:
 
-# In[2]:
+# In[3]:
 
 
 A = torch.tensor([[1, 2], [4, -3]])
@@ -43,7 +43,7 @@ print(B)
 
 # Just like numpy, PyTorch supports operations like addition, multiplication, transposition, dot products, and concatenation of tensors. Look up and fill in the operations for the following:
 
-# In[10]:
+# In[4]:
 
 
 print("Sum of A and B:")
@@ -111,7 +111,7 @@ print(torch. cat((A,B),1))
 # ```
 # 
 
-# In[12]:
+# In[5]:
 
 
 print("3x4x5 Tensor of Zeros:")
@@ -137,14 +137,17 @@ print(E)
 # 
 # If you're right, you should get something very close to $$\pi \approx 3.14 .$$
 
-# In[17]:
+# In[7]:
 
 
 val = torch.arange(100).float()
 val = torch.add(val,0.5)
 val = torch.pow(val,2)
 val = torch.neg(val)
-
+val = torch.exp(val)
+val = torch.sum(val)
+val = torch.mul(val, 2)
+val = torch.pow(val, 2)
 print(val)
 
 
@@ -152,12 +155,13 @@ print(val)
 # $$softmax(x_i) = \frac{e^{x_i}}{\sum_{j = 0}^{n - 1} e^{x_j}}$$
 # Calculate the softmax function for the $val$ tensor below where $n$ is the number of elements in $val$, and $x_i$ is each element in $val$. DO NOT use the built-in softmax function. We should end up with a tensor that represents a probability distribution that sums to 1. (hint: you should calculate the sum of the exponents first)
 
-# In[ ]:
+# In[10]:
 
 
 val1 = torch.arange(10).float()
-
-### YOUR CODE HERE
+val1 = torch.exp(val1)
+val2 = torch.sum(val1)
+result1 = torch.div(val1,val2)
 
 print(result1)
 print(torch.sum(result1))
@@ -179,7 +183,7 @@ print(torch.sum(result1))
 
 # Let's take a look at a simple computation to see what autograd is doing. First, let's create two tensors and add them together. To signal to PyTorch that we want to build a computation graph, we must set the flag requires_grad to be True when creating a tensor.
 
-# In[ ]:
+# In[12]:
 
 
 a = torch.tensor([1, 2], dtype=torch.float, requires_grad=True)
@@ -190,7 +194,7 @@ c = a + b
 
 # Now, since a and b are both part of our computation graph, c will automatically be added:
 
-# In[ ]:
+# In[13]:
 
 
 c.requires_grad
@@ -200,7 +204,7 @@ c.requires_grad
 
 # In the case of c, its grad_fn is of type AddBackward1, PyTorch's notation for a tensor that was created by adding two tensors together:
 
-# In[ ]:
+# In[14]:
 
 
 c.grad_fn
@@ -208,7 +212,7 @@ c.grad_fn
 
 # Every grad_fn has an attribute called next_functions: This attribute lets the grad_fn pass on its gradient to the tensors that were used to compute it.
 
-# In[ ]:
+# In[15]:
 
 
 c.grad_fn.next_functions
@@ -216,7 +220,7 @@ c.grad_fn.next_functions
 
 # If we extract the tensor values corresponding to each of these functions, we can see a and b! 
 
-# In[ ]:
+# In[16]:
 
 
 print(c.grad_fn.next_functions[0][0].variable)
@@ -233,7 +237,7 @@ print(c.grad_fn.next_functions[1][0].variable)
 
 # For example, let's define a logistic regression module. This module will contain two parameters: The weight vector and the bias. Calling the _forward_ method will output a probability between zero and one.
 
-# In[ ]:
+# In[19]:
 
 
 class LogisticRegression(nn.Module):
@@ -254,7 +258,7 @@ class LogisticRegression(nn.Module):
 
 # We can now create a random vector and pass it through the module:
 
-# In[ ]:
+# In[20]:
 
 
 module = LogisticRegression()
@@ -262,7 +266,7 @@ vector = torch.randn(10)
 output = module(vector)
 
 
-# In[ ]:
+# In[21]:
 
 
 output
@@ -270,13 +274,13 @@ output
 
 # Now, say that our loss function is mean-squared-error and our target value is 1. We can then write our loss as:
 
-# In[ ]:
+# In[22]:
 
 
 loss = (output - 1) ** 2
 
 
-# In[ ]:
+# In[23]:
 
 
 loss
@@ -284,13 +288,13 @@ loss
 
 # To minimize this loss, we just call loss.backward(), and all the gradients will be computed for us! Note that wrapping a tensor as a Parameter will automatically set requires_grad = True.
 
-# In[ ]:
+# In[24]:
 
 
 loss.backward()
 
 
-# In[ ]:
+# In[37]:
 
 
 print(module.weight.grad)
@@ -314,7 +318,24 @@ print(module.bias.grad)
 trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True)
 val_and_test_set = torchvision.datasets.CIFAR10(root='./data', train=False, download=True)
 
-### YOUR CODE HERE
+val, test = torch.utils.data.random_split(val_and_test_set, lengths = [5000, 5000])
+train_torch,test_torch,val_torch, train_feat = [],[],[],[]
+
+for i in range(trainset.__len__()):
+    train_torch.append(torch.from_numpy(np.array(trainset[i][0]) / 256).view(32,32,3))
+    train_feat.append(torch.from_numpy(np.array(trainset[i][0]) / 256))
+
+for i in range(val.__len__()):
+    val_torch.append(torch.from_numpy(np.array(val[i][0]) / 256).view(32,32,3))
+    
+for i in range(test.__len__()):
+    test_torch.append(torch.from_numpy(np.array(test[i][0]) / 256).view(32,32,3))
+    
+train_set = torch.utils.data.TensorDataset(train_features, train_targets)
+
+trainloader = torch.utils.data.DataLoader(train_torch, shuffle = True, batch_size = 32)
+valloader = torch.utils.data.DataLoader(val_torch, shuffle = True, batch_size = 32)
+testloader = torch.utils.data.DataLoader(test_torch, shuffle = True, batch_size = 32)
 
 # trainloader = ...
 # valloader = ...
@@ -329,6 +350,12 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship'
 
 
 ### YOUR CODE HERE - Grab a few examples from trainset and plot them
+plt.imshow(trainset[3][0])
+plt.show()
+plt.imshow(trainset[4][0])
+plt.show()
+plt.imshow(trainset[7][0])
+plt.show()
 
 
 # Now try to build and train a plain neural network that properly classifies images in the CIFAR-10 dataset. Try to achieve at least around 40% accuracy (the higher the better!).
@@ -347,21 +374,26 @@ class NeuralNet(nn.Module):
         super().__init__()
         
         ### YOUR CODE HERE
+        super(NeuralNet, self).__init__()
+        self.linear1 = torch.nn.Linear(input_dim, hidden_dim)
+        self.linear2 = torch.nn.Linear(hidden_dim, output_dim)
         
     def forward(self, data):
         
-        ### YOUR CODE HERE
+        a = self.linear1(x).clamp(min=0)
+        y_pred = self.linear2(a)
+        return y_pred
 
         
 
 
-# In[13]:
+# In[ ]:
 
 
-EPOCHS = ...
-LEARNING_RATE = ...
-INPUT_SIZE = ...
-HIDDEN_SIZE = ...
+EPOCHS = 2
+LEARNING_RATE = 0.005
+INPUT_SIZE = 1200
+HIDDEN_SIZE = 100
 
 OUTPUT_SIZE = 10
 
@@ -369,8 +401,8 @@ net = NeuralNet(INPUT_SIZE, HIDDEN_SIZE, OUTPUT_SIZE)
 
 ### Define an optimizer and a loss function here. We pass our network parameters to our optimizer here so we know
 ### which values to update by how much.
-optimizer = ...
-loss_fn = ...
+optimizer = torch.optim.SGD(net.parameters(), lr= LEARNING_RATE, momentum=0.9)
+loss_fn = nn.NLLLoss()
 
 print(net)
 
@@ -378,10 +410,14 @@ for epoch in range(EPOCHS):
     
     total_loss = 0
     
-    for images, labels in trainloader:
+    for images, labels in trainloader :
                 
         ### YOUR CODE HERE - Zero gradients, call .backward(), and step the optimizer.
-        loss = ...
+        optimizer.zero_grad()
+        m = net(images)
+        loss = criterion(m, labels)
+        loss.backward()
+        optimizer.step()
                 
         total_loss += loss.item()
         
@@ -390,7 +426,12 @@ for epoch in range(EPOCHS):
     ### Calculate validation accuracy here by iterating through the validation set.
     ### We use torch.no_grad() here because we don't want to accumulate gradients in our function.
     with torch.no_grad():
-        val_acc = ...
+        for images, labels in valloader:
+            m = net(images)
+            _, predicted = torch.max(outputs.data, 1)
+            total = total + labels.size(0)
+            correct = correct + (predicted == labels).sum().item()
+        val_acc = 100 * correct/total
     
     print("(epoch, train_loss, val_acc) = ({0}, {1}, {2})".format(epoch, average_loss, val_acc))
 
@@ -400,7 +441,12 @@ for epoch in range(EPOCHS):
 
 ### YOUR CODE HERE - Here, we test the overall accuracy of our model.
 with torch.no_grad():
-    test_acc = ...
+    for images, labels in testloader:
+        m = net(images)
+        _, predicted = torch.max(outputs.data, 1)
+        total = total + labels.size(0)
+        correct = correct + (predicted == labels).sum().item()
+        val_acc = 100 * correct/total
     print("Test accuracy:", test_acc)
 
 

@@ -1,2 +1,5 @@
 *.ipynb_checkpoints
 .mais-env
+data/
+data
+

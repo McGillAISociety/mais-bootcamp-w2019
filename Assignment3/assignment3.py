@@ -11,15 +11,10 @@
 
 
 import torch
-import torchvision
-import torch.nn as nn
-
 import numpy as np
 
 get_ipython().run_line_magic('matplotlib', 'inline')
 import matplotlib.pyplot as plt
-import torch.nn.functional as F
-import torch.optim as optim
 
 
 # If you can't import torch, go to www.pytorch.org and follow the instructions there for downloading PyTorch. You can select CUDA Version as None, as we won't be working with any GPUs on this homework.
@@ -271,15 +266,15 @@ class LogisticRegression(nn.Module):
 # In[13]:
 
 
-module = LogisticRegression()
-vector = torch.randn(10)
-output = module(vector)
+module = LogisticRegression() #Creates instance of model
+vector = torch.randn(10) #Create a torch tensor from normal distribution of size 10
+output = module(vector) #Fit data to model
 
 
 # In[14]:
 
 
-output
+output 
 
 
 # Now, say that our loss function is mean-squared-error and our target value is 1. We can then write our loss as:
@@ -287,7 +282,7 @@ output
 # In[15]:
 
 
-loss = (output - 1) ** 2
+loss = (output - 1) ** 2 #We assume target value is 1. Thus we want to minimize it. Must Square to evade negative values
 
 
 # In[16]:
@@ -301,7 +296,7 @@ loss
 # In[17]:
 
 
-loss.backward()
+loss.backward() #Calculate the backward gradients to minimize the loss
 
 
 # In[18]:
@@ -322,39 +317,188 @@ print(module.bias.grad)
 # 
 # Be sure to have the options `shuffle=True` (so that your dataset is shuffled so that samples from the dataset are not correlated) and also `batch_size=32` or larger. This is a standard minibatch size. If you're curious about what batch size does (and are somewhat familiar with statistics), here's a great answer https://stats.stackexchange.com/questions/316464/how-does-batch-size-affect-convergence-of-sgd-and-why.
 
-# In[19]:
+# In[76]:
 
 
-trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True) #50k Data
-val_and_test_set = torchvision.datasets.CIFAR10(root='./data', train=False, download=True) #10k data
-#transform = torchvision.transforms.Compose([transforms.ToTensor(),transforms.Normalize((0.0, 0.0, 0.0), (1, 1, 1))])
+import torch.nn.functional as F
+import torch.optim as optim
+
+import torchvision
+import torch.nn as nn
+import torchvision.transforms as transforms
+from scipy.misc import imshow
+import torch.optim as optim
+from torchvision import datasets
+from torch.autograd import Variable
+
+
+# # Documentation Transform
+# 
+# ## transform.ToTensor() :
+# Converts a PIL Image or np.ndarray to a tensor
+# Flattens to (CxHxW) = (32x32x3) (32x32 for each color (RBG))
+# Transform data [0-255] to [0-1]
+# 
+# ## transform.Normalize()
+# (Mean),(Standard Deviation)
+# image = (image - mean) / std
+
+# In[24]:
+
+
+#transform = transforms.Compose([transforms.ToTensor(),transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+trainset = datasets.CIFAR10(root='./data', train=True, download=True) #50k Data
+val_and_test_set =datasets.CIFAR10(root='./data', train=False, download=True) #10k data
+
+
+# In[ ]:
+
+
+#Transform PIL Image to Np Arrays. Since we want to modify the original data, use np.asarray instead of np.array
+
+
+# In[48]:
+
+
+#Transform into an array, divides by 255 to normalize. 
+train = [(np.asarray(image)/255, target) for image,target in trainset]
+valtest = [(np.asarray(image)/255, target) for image,target in val_and_test_set]
+#train[0][0][1]
+
+
+# # Note to self:
+# Use Torch Command .view to reshape the inputs.
+# We do not care of what our original interval may be, the weight does the job.
+# Shuffle True --> Data reshuffled at each epoch
+
+# In[49]:
+
+
+#Splits data into 2 equal set.
+val = valtest[:5000]
+test=valtest[5000:]
+#val[0][1]
+
+
+# In[55]:
+
+
+#Transform all to torch.tensors
+TrainT=[(torch.tensor(image),torch.tensor(target)) for image, target in train]
+valT=[(torch.tensor(image),torch.tensor(target)) for image, target in val]
+testT=[(torch.tensor(image),torch.tensor(target)) for image, target in test]
+
+
+# In[57]:
+
+
+#Load Data to pytorch data loader. 
+trainloader=torch.utils.data.DataLoader(TrainT, batch_size=32, shuffle=True)
+valloader=torch.utils.data.DataLoader(valT, batch_size=32, shuffle=True)
+testloader=torch.utils.data.DataLoader(testT, batch_size=32, shuffle=True)
+classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+
+
+# In[68]:
+
+
+for x,y in TrainT[:3]:
+    plt.title(classes[y])
+    plt.imshow(x)
+    plt.show()
+
+
+# # Whatever is under this point is left to demistefy 
+
+# In[82]:
+
+
+class Net(nn.Module):
+    def __init__(self, input_size, hidden_size, num_classes):
+        super(Net, self).__init__()                    # Inherited from the parent class nn.Module
+        self.fc1 = nn.Linear(input_size, hidden_size)  # 1st Full-Connected Layer: 784 (input data) -> 500 (hidden node)
+        self.relu = nn.ReLU()                          # Non-Linear ReLU Layer: max(0,x)
+        self.fc2 = nn.Linear(hidden_size, num_classes) # 2nd Full-Connected Layer: 500 (hidden node) -> 10 (output class)
+    
+    def forward(self, x):                              # Forward pass: stacking each layer together
+        out = self.fc1(x)
+        out = self.relu(out)
+        out = self.fc2(out)
+        return out
+
+
+# In[83]:
+
+
+EPOCHS = 50
+LEARNING_RATE = 0.001
+INPUT_SIZE = 32*32*3
+HIDDEN_SIZE = 500
+OUTPUT_SIZE = 10
+
+net = Net(INPUT_SIZE, HIDDEN_SIZE, OUTPUT_SIZE)
+loss_fn = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(net.parameters(), lr=LEARNING_RATE)
+
+
+# In[84]:
+
+
+get_ipython().run_cell_magic('time', '', 'for epoch in range(EPOCHS):\n    \n    total_loss = 0\n    \n    for images, labels in trainloader:\n                \n        ### YOUR CODE HERE - Zero gradients, call .backward(), and step the optimizer.\n        images=images.view(images.shape[0],-1).float()\n        images.require_grad=True\n        optimizer.zero_grad()\n        outputs = net(images)\n        loss = loss_fn(outputs,labels)\n        loss.backward()\n        optimizer.step()\n                \n        total_loss += loss.item()\n        \n    average_loss = total_loss / len(trainloader)\n    \n    ### Calculate validation accuracy here by iterating through the validation set.\n    ### We use torch.no_grad() here because we don\'t want to accumulate gradients in our function.\n    with torch.no_grad():\n        correction=0.0\n        for images,labels in valloader:\n            images=images.view(images.shape[0],-1).float()\n            val_output = net(images)\n            val_output = torch.argmax(val_output.reshape(val_output.shape[0], -1), dim=1)\n            correction += torch.sum(val_output == labels).item() / float(val_output.shape[0])\n        val_acc=correction/len(valloader)\n    print("(epoch, train_loss, val_acc) = ({0}, {1}, {2})".format(epoch, average_loss, val_acc))')
+
+
+# In[85]:
+
+
+get_ipython().run_cell_magic('time', '', 'with torch.no_grad():\n    correction=0.0\n    for images,labels in testloader:\n        images=images.view(images.shape[0],-1).float()\n        test_output = net(images)\n        test_output = torch.argmax(test_output.reshape(test_output.shape[0], -1), dim=1)\n        correction += torch.sum(test_output == labels).item() / float(test_output.shape[0])\n    test_acc=correction/len(testloader)\n    print("Test accuracy:", test_acc)')
+
+
+# # End of assignment. I still have a bug in my code downthere. Will try to keep on debugging
+
+# # Questions:
+# 
+# 1. In the given example, what if we wanted to make our target value 0, what would we do? loss = 0?
+# 1. Why are we dividing by 256 and not 255?
+# 3. What is the num_workers in pytorch.DataLoader? What are sub-processes?
+
+# In[ ]:
+
+
+https://colab.research.google.com/drive/1jxUPzMsAkBboHMQtGyfv5M5c7hU8Ss2c#scrollTo=qBrGa7qMJKcB
+https://github.com/pytorch/tutorials/blob/master/beginner_source/blitz/cifar10_tutorial.py#L154
+
+
+# In[26]:
+
+
+
 
 
 # ### Now I think I understood, but please correct me if I am wrong. torchvision.datasets is image, label. The image is a 3D array, with 32 rows, 32 columns, 3 depth? and the labe is one of the image
 
-# In[20]:
+# In[27]:
 
 
-trainset = [(np.asarray(image) / 256, label) for image, label in trainset] #This normalizes the data to [0,256]
-val_and_test_set = [(np.asarray(image) / 256, label) for image, label in trainset] #This normalizes the data to [0,256]
-val=val_and_test_set[:5000] #0-4999 are valset
-test=val_and_test_set[5000:]#5000-9999 are test set.
+#trainset = [(np.asarray(image) / 256, label) for image, label in trainset] #This normalizes the data to [0,256]
+#val_and_test_set = [(np.asarray(image) / 256, label) for image, label in trainset] #This normalizes the data to [0,256]
+#val=val_and_test_set[:5000] #0-4999 are valset
+#test=val_and_test_set[5000:]#5000-9999 are test set.
 
-trainset=[(torch.tensor(image.reshape(1,-1)), torch.tensor(label)) for image,label in trainset] #reshapes, -1 means TBD size
-val=[(torch.tensor(image.reshape(1,-1)),torch.tensor(label)) for image, label in val]
-test=[(torch.tensor(image.reshape(1,-1)), torch.tensor(label)) for image,label in test]
+#trainset=[(torch.tensor(image.reshape(1,-1)), torch.tensor(label)) for image,label in trainset] #reshapes, -1 means TBD size
+#val=[(torch.tensor(image.reshape(1,-1)),torch.tensor(label)) for image, label in val]
+#test=[(torch.tensor(image.reshape(1,-1)), torch.tensor(label)) for image,label in test]
 ### YOUR CODE HERE
 
 trainloader = torch.utils.data.DataLoader(trainset, shuffle=True, batch_size=32)
-valloader = torch.utils.data.DataLoader(val, shuffle=True, batch_size=32)
-testloader = torch.utils.data.DataLoader(test, shuffle=True, batch_size=32)
+valloader = torch.utils.data.DataLoader(val_and_test_set, shuffle=True, batch_size=32)
+#testloader = torch.utils.data.DataLoader(test, shuffle=True, batch_size=32)
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 
 # CIFAR-10 consists of 32 x 32 color images, each corresponding to a unique class indicating the object present within the image. Use Matplotlib to print out the first few images.
 
-# In[21]:
+# In[ ]:
 
 
 for image, label in trainset[:4]:
@@ -372,33 +516,59 @@ for image, label in trainset[:4]:
 
 # https://github.com/pytorch/tutorials/blob/master/beginner_source/blitz/cifar10_tutorial.py
 
-# In[22]:
+# class Net(nn.Module):
+#     def __init__(self, input_dim, hidden_dim, output_dim):
+# 
+#         super().__init__()
+#         self.conv1 = nn.Conv2d(input_dim, hidden_dim, 5)
+#         self.pool = nn.MaxPool2d(2, 2)
+#         self.conv2 = nn.Conv2d(hidden_dim, output_dim, 5)
+#         self.fc1 = nn.Linear(output_dim*5*5, 120)
+#         self.fc2 = nn.Linear(120, 84)
+#         self.fc3 = nn.Linear(84, 10)
+#         
+#     def forward(self, x):
+#         x = self.pool(F.relu(self.conv1(x)))
+#         x = self.pool(F.relu(self.conv2(x)))
+#         x = x.view(-1, output_dim * 5 * 5)
+#         x = F.relu(self.fc1(x))
+#         x = F.relu(self.fc2(x))
+#         x = self.fc3(x)
+#         return x
+# 
+#         
+
+# In[30]:
+
+
+import torch.nn as nn
+import torch.nn.functional as F
 
 
 class Net(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim):
-
-        super().__init__()
-        self.conv1 = nn.Conv2d(input_dim, hidden_dim, 5)
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = nn.Conv2d(3, 6, 5)
         self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(hidden_dim, output_dim, 5)
-        self.fc1 = nn.Linear(output_dim*5*5, 120)
+        self.conv2 = nn.Conv2d(6, 16, 5)
+        self.fc1 = nn.Linear(16 * 5 * 5, 120)
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, 10)
-        
+
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, output_dim * 5 * 5)
+        x = x.view(-1, 16 * 5 * 5)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
         return x
 
-        
+
+net = Net()
 
 
-# In[23]:
+# In[31]:
 
 
 EPOCHS = 10
@@ -410,8 +580,8 @@ HIDDEN_SIZE = 5
 
 OUTPUT_SIZE = 10
 
-net = Net(INPUT_SIZE, HIDDEN_SIZE, OUTPUT_SIZE)
-#net=Net()
+#net = Net(INPUT_SIZE, HIDDEN_SIZE, OUTPUT_SIZE)
+net=Net()
 ### Define an optimizer and a loss function here. We pass our network parameters to our optimizer here so we know
 ### which values to update by how much.
 optimizer = optim.Adam(net.parameters(),lr=LEARNING_RATE)

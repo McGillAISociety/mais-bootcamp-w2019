@@ -36,7 +36,7 @@
 # ### Note:
 # This assignment may take a while to complete (mostly due to training time). If you find that it is taking too long, reduce the batch size (to some lower power of 2) and reduce the number of epochs from 10 to a lower number. Whatever accuracy you end up with does not matter as long as we see that you have tried you complete this assignment :)
 
-# In[111]:
+# In[8]:
 
 
 # Python imports
@@ -67,7 +67,7 @@ from IPython.display import display
 
 # ### First we declare some constants relating to our input and training
 
-# In[38]:
+# In[9]:
 
 
 BATCH_SIZE = 128 # Reduce this to 256, 128, 64, etc if your computer is too slow
@@ -83,7 +83,7 @@ INPUT_SHAPE = (-1, IMG_SIZE, IMG_SIZE, NUM_CHANNELS)
 
 # ### Helper functions
 
-# In[39]:
+# In[10]:
 
 
 def preprocess(x):
@@ -124,27 +124,27 @@ def predict(model, X):
     return y_pred
 
 
-# In[40]:
+# In[11]:
 
 
 X = pd.read_csv('modified_mnist_x.csv', dtype=np.float32)
 y = pd.read_csv('modified_mnist_y.csv', dtype=np.float32)
 
 
-# In[41]:
+# In[12]:
 
 
 display(X.head())
 display(y.head())
 
 
-# In[42]:
+# In[13]:
 
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y)
 
 
-# In[43]:
+# In[14]:
 
 
 display(X_train.shape)
@@ -153,7 +153,7 @@ display(X_test.shape)
 
 # ### First we reshape the flattenend images into 64x64x1 (The 1 is because we have 1 channel. If we had rgb, then it would be 64x64x3)
 
-# In[44]:
+# In[15]:
 
 
 X_train = np.reshape(X_train.values, INPUT_SHAPE)
@@ -164,7 +164,7 @@ y_test = y_test.values
 
 # ### Let's take a look at our data
 
-# In[45]:
+# In[16]:
 
 
 show_data(X_train, y_train)
@@ -172,14 +172,14 @@ show_data(X_train, y_train)
 
 # ### We notice that the digits themselves are always black, and the backgrounds are of a different shade. This implies we could remove the background. Let's do that
 
-# In[46]:
+# In[17]:
 
 
 X_train = preprocess(X_train)
 X_test = preprocess(X_test)
 
 
-# In[47]:
+# In[18]:
 
 
 display(X_train.shape) # Now our inputs have been reshaped, so we have a 4D array, with each item representing an image.
@@ -188,20 +188,20 @@ display(X_test.shape)
 
 # ### Categorical labels should always be one-hot encoded
 
-# In[48]:
+# In[19]:
 
 
 y_train_enc = to_categorical(y_train, NUM_CLASSES)
 y_test_enc = to_categorical(y_test, NUM_CLASSES)
 
 
-# In[49]:
+# In[20]:
 
 
 show_data(X_train, y_train)
 
 
-# In[50]:
+# In[21]:
 
 
 show_data(X_test, y_test)
@@ -211,7 +211,7 @@ show_data(X_test, y_test)
 # 
 # This is a very simple CNN architecture similar to what you learned in the lecture. We have cascading blocks of convolutional layers followed by pooling layers.
 
-# In[126]:
+# In[ ]:
 
 
 def create_base_model():
@@ -239,20 +239,20 @@ def create_base_model():
     return model
 
 
-# In[127]:
+# In[ ]:
 
 
 model_base = create_base_model()
 model_base.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
 
 
-# In[128]:
+# In[ ]:
 
 
 model_base.fit(x=X_train[:1000], y=y_train_enc[:1000], epochs=10, batch_size=BATCH_SIZE)
 
 
-# In[55]:
+# In[ ]:
 
 
 y_pred = predict(model_base, X_test)
@@ -266,7 +266,7 @@ print(y_pred)
 # Compile your model and fit the training set as shown above. Predict on the test set and check your accuracy.
 # 
 
-# In[132]:
+# In[22]:
 
 
 def create_model():
@@ -289,10 +289,10 @@ def create_model():
 
     model.add(Flatten())
     
-    model.add(Dense(1024, activation='relu'))
+    model.add(Dense(512, activation='relu'))
     model.add(Dropout(0.3))
     
-    model.add(Dense(1024, activation='relu'))
+    model.add(Dense(258, activation='relu'))
     model.add(Dropout(0.3))
 
     model.add(Dense(NUM_CLASSES, activation='softmax'))
@@ -300,31 +300,19 @@ def create_model():
     return model
 
 
-# In[133]:
-
-
-print(X_train[:1000].shape)
-print(y_train_enc[:1000].shape)
-print(IMG_SHAPE_CHANNELS)
-
-args = np.zeros(10)
-for i in y_train_enc[:2000]:
-    args[np.argmax(i)] += 1
-    
-print(args)
-
-
-# In[134]:
+# In[23]:
 
 
 model = create_model()
 model.compile(optimizer=Adam(), loss='categorical_crossentropy', metrics=['accuracy'])
-model_base.fit(x=X_train, y=y_train_enc, epochs=20, batch_size=16)
+model.fit(x=X_train, y=y_train_enc, epochs=10, batch_size=64)
 
 
-# In[ ]:
+# In[26]:
 
 
 y_pred = predict(model, X_test)
-print('Your accuracy is:', accuracy_score(y_true, y_pred))
+print(y_pred.shape, y_test.shape)
+print('Your accuracy is:', accuracy_score(y_test, y_pred))
+# Overfit but it is close
 

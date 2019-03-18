@@ -2,4 +2,4 @@
 .mais-env
 data/
 data
-
+*.csv

@@ -126,8 +126,8 @@ def predict(model, X):
 # In[4]:
 
 
-X = pd.read_csv('/Users/philiptam/Projects/Mais/mais-bootcamp-w2019/Assignment5/modified_mnist_x.csv', dtype=np.float32)
-y = pd.read_csv('/Users/philiptam/Projects/Mais/mais-bootcamp-w2019/Assignment5/modified_mnist_y.csv', dtype=np.float32)
+X = pd.read_csv("Assignment5/modified_mnist_x.csv", dtype=np.float32)
+y = pd.read_csv('Assignment5/modified_mnist_y.csv', dtype=np.float32)
 
 
 # In[5]:
@@ -208,7 +208,8 @@ show_data(X_test, y_test)
 
 # ### Now we define our base model
 # 
-# This is a very simple CNN architecture similar to what you learned in the lecture. We have cascading blocks of convolutional layers followed by pooling layers.
+# This is a very simple CNN architecture similar to what you learned in the lecture. We have cascading blocks of
+# convolutional layers followed by pooling layers.
 
 # In[13]:
 
@@ -255,6 +256,7 @@ model_base.fit(x=X_train, y=y_train_enc, epochs=10, batch_size=BATCH_SIZE)
 
 
 y_pred = predict(model_base, X_test)
+print('Your accuracy is:', accuracy_score(y_test, y_pred))
 
 
 # ## Your task
@@ -266,8 +268,7 @@ y_pred = predict(model_base, X_test)
 
 # In[ ]:
 
-
-def create_model():
+def create_model_1():
     # TODO: Create your model here
     model = Sequential()
 
@@ -276,6 +277,7 @@ def create_model():
 
     model.add(Conv2D(64, (3, 3), padding='same', activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.2))
 
     model.add(Conv2D(128, (3, 3), padding='same', activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -283,25 +285,27 @@ def create_model():
     model.add(Conv2D(256, (3, 3), padding='same', activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
+    model.add(Dropout(0.2))
+
     model.add(Flatten())
     model.add(Dense(1024, activation='relu'))
 
     model.add(Dense(1024, activation='relu'))
-
+    model.add(Dropout(0.4))
     model.add(Dense(NUM_CLASSES, activation='softmax'))
     return model
 
 
 # In[ ]:
 
-model = create_model()
-model_base.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
+model = create_model_1()
+model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
 # TODO: Compile your model
 
 
 # In[ ]:
 
-model.fit(x=X_train, y=y_train_enc, epochs=10, batch_size=BATCH_SIZE)
+model.fit(x=X_train, y=y_train_enc, epochs=14, batch_size=BATCH_SIZE)
 # TODO: fit your model to the training set
 
 
